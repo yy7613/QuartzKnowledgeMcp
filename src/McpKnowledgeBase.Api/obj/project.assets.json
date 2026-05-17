@@ -3637,9 +3637,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpKnowledgeBase.Api.csproj",
-      "projectName": "McpKnowledgeBase.Api",
-      "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpKnowledgeBase.Api.csproj",
+      "projectUniqueName": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpServerCatalog.Api.csproj",
+      "projectName": "McpServerCatalog.Api",
+      "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpServerCatalog.Api.csproj",
       "packagesPath": "C:\\Users\\YUKI28295\\.nuget\\packages\\",
       "outputPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\obj\\",
       "projectStyle": "PackageReference",
@@ -4154,7 +4154,7 @@
     {
       "code": "NU1605",
       "level": "Error",
-      "message": "エラーとして警告: Azure.AI.Projects の 2.1.0-beta.1 から 2.0.1 へのパッケージ ダウングレードが検出されました。別のバージョンを選択するには、プロジェクトから直接パッケージを参照してください。 \r\n McpKnowledgeBase.Api -> Microsoft.Agents.AI.Foundry 1.6.1-preview.260514.1 -> Azure.AI.Projects (>= 2.1.0-beta.1) \r\n McpKnowledgeBase.Api -> Azure.AI.Projects (>= 2.0.1)",
+      "message": "エラーとして警告: Azure.AI.Projects の 2.1.0-beta.1 から 2.0.1 へのパッケージ ダウングレードが検出されました。別のバージョンを選択するには、プロジェクトから直接パッケージを参照してください。 \r\n McpServerCatalog.Api -> Microsoft.Agents.AI.Foundry 1.6.1-preview.260514.1 -> Azure.AI.Projects (>= 2.1.0-beta.1) \r\n McpServerCatalog.Api -> Azure.AI.Projects (>= 2.0.1)",
       "libraryId": "Azure.AI.Projects",
       "targetGraphs": [
         "net10.0"

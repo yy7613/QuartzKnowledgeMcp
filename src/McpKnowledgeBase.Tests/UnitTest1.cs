@@ -1,4 +1,4 @@
-﻿namespace McpKnowledgeBase.Tests;
+﻿namespace McpServerCatalog.Tests;
 
 public class UnitTest1
 {

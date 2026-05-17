@@ -1464,7 +1464,7 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
-      "McpKnowledgeBase.Api/1.0.0": {
+      "McpServerCatalog.Api/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
@@ -1476,10 +1476,10 @@
           "Microsoft.EntityFrameworkCore.Sqlite": "10.0.8"
         },
         "compile": {
-          "bin/placeholder/McpKnowledgeBase.Api.dll": {}
+          "bin/placeholder/McpServerCatalog.Api.dll": {}
         },
         "runtime": {
-          "bin/placeholder/McpKnowledgeBase.Api.dll": {}
+          "bin/placeholder/McpServerCatalog.Api.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
@@ -3393,15 +3393,15 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "McpKnowledgeBase.Api/1.0.0": {
+    "McpServerCatalog.Api/1.0.0": {
       "type": "project",
-      "path": "../McpKnowledgeBase.Api/McpKnowledgeBase.Api.csproj",
-      "msbuildProject": "../McpKnowledgeBase.Api/McpKnowledgeBase.Api.csproj"
+      "path": "../McpKnowledgeBase.Api/McpServerCatalog.Api.csproj",
+      "msbuildProject": "../McpKnowledgeBase.Api/McpServerCatalog.Api.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "McpKnowledgeBase.Api >= 1.0.0",
+      "McpServerCatalog.Api >= 1.0.0",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
       "coverlet.collector >= 6.0.4",
       "xunit >= 2.9.3",
@@ -3416,9 +3416,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Tests\\McpKnowledgeBase.Tests.csproj",
-      "projectName": "McpKnowledgeBase.Tests",
-      "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Tests\\McpKnowledgeBase.Tests.csproj",
+      "projectUniqueName": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Tests\\McpServerCatalog.Tests.csproj",
+      "projectName": "McpServerCatalog.Tests",
+      "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Tests\\McpServerCatalog.Tests.csproj",
       "packagesPath": "C:\\Users\\YUKI28295\\.nuget\\packages\\",
       "outputPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Tests\\obj\\",
       "projectStyle": "PackageReference",
@@ -3443,8 +3443,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpKnowledgeBase.Api.csproj": {
-              "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpKnowledgeBase.Api.csproj"
+            "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpServerCatalog.Api.csproj": {
+              "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\McpKnowledgeBase.Api\\McpServerCatalog.Api.csproj"
             }
           }
         }
@@ -3780,7 +3780,7 @@
     {
       "code": "NU1605",
       "level": "Error",
-      "message": "エラーとして警告: Azure.AI.Projects の 2.1.0-beta.1 から 2.0.1 へのパッケージ ダウングレードが検出されました。別のバージョンを選択するには、プロジェクトから直接パッケージを参照してください。 \r\n McpKnowledgeBase.Tests -> McpKnowledgeBase.Api -> Microsoft.Agents.AI.Foundry 1.6.1-preview.260514.1 -> Azure.AI.Projects (>= 2.1.0-beta.1) \r\n McpKnowledgeBase.Tests -> McpKnowledgeBase.Api -> Azure.AI.Projects (>= 2.0.1)",
+      "message": "エラーとして警告: Azure.AI.Projects の 2.1.0-beta.1 から 2.0.1 へのパッケージ ダウングレードが検出されました。別のバージョンを選択するには、プロジェクトから直接パッケージを参照してください。 \r\n McpServerCatalog.Tests -> McpServerCatalog.Api -> Microsoft.Agents.AI.Foundry 1.6.1-preview.260514.1 -> Azure.AI.Projects (>= 2.1.0-beta.1) \r\n McpServerCatalog.Tests -> McpServerCatalog.Api -> Azure.AI.Projects (>= 2.0.1)",
       "libraryId": "Azure.AI.Projects",
       "targetGraphs": [
         "net10.0"

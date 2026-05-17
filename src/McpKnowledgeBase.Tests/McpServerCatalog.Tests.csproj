@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\McpKnowledgeBase.Api\McpKnowledgeBase.Api.csproj" />
+    <ProjectReference Include="..\McpKnowledgeBase.Api\McpServerCatalog.Api.csproj" />
   </ItemGroup>
 
 </Project>
