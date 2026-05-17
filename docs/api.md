@@ -9,6 +9,9 @@ HTTP API として公開しつつ、将来的に MCP サーバーのツールと
 - Gold: 公開用カタログデータの検索、参照、更新
 - Agent: LLM を使った自動整理の実行またはプレビュー
 
+本 API は実装上、DB、Embedding、LLM をそれぞれ Port 経由で切り替え可能な前提で設計する。
+MVP ではカテゴリ絞り込みは独立パラメータを持たず、`tag` / `tags[]` を使って表現する。
+
 ## データ層と状態遷移
 | 層 | 主なリソース | 役割 | 次状態 |
 |:--|:--|:--|:--|
@@ -28,6 +31,7 @@ HTTP API として公開しつつ、将来的に MCP サーバーのツールと
 | `suggest_search_terms` | `GET /api/search/suggestions` | 入力補完候補を取得する |
 | `get_search_facets` | `GET /api/search/facets` | 絞り込み候補と件数を取得する |
 | `get_related_entries` | `GET /api/gold/catalog/{entryId}/related` | 類似・関連エントリを取得する |
+| `get_system_capabilities` | `GET /api/system/capabilities` | 現在有効な機能と Adapter 種別を取得する |
 | `update_catalog_tags` | `PUT /api/gold/catalog/{entryId}/tags` | タグを更新する |
 | `get_entry_history` | `GET /api/gold/catalog/{entryId}/history` | 更新履歴を取得する |
 
@@ -41,13 +45,14 @@ HTTP API として公開しつつ、将来的に MCP サーバーのツールと
 | GET | `/api/silver/server-drafts` | Silver 下書き一覧を取得する | `page`, `pageSize`, `bronzeId` | `SilverServerDraft[]` |
 | GET | `/api/silver/server-drafts/{silverId}` | Silver 下書き詳細を取得する | `silverId` | `SilverServerDraftDetail` |
 | POST | `/api/silver/server-drafts/{silverId}:publish` | Silver 下書きを Gold に公開する | `silverId`, `publishedBy` | `GoldCatalogEntry` |
-| GET | `/api/gold/catalog` | Gold カタログ一覧を取得する | `page`, `pageSize`, `tag`, `authType` | `GoldCatalogEntrySummary[]` |
+| GET | `/api/gold/catalog` | Gold カタログ一覧を取得する | `page`, `pageSize`, `tag`, `authType`, `client` | `GoldCatalogEntrySummary[]` |
 | GET | `/api/gold/catalog/{entryId}` | Gold カタログ詳細を取得する | `entryId` | `GoldCatalogEntryDetail` |
 | PUT | `/api/gold/catalog/{entryId}` | Gold カタログ本体を更新する | `overview`, `setupGuide`, `references`, `supportedClients` | `GoldCatalogEntryDetail` |
 | PUT | `/api/gold/catalog/{entryId}/tags` | タグを全置換で更新する | `tags[]` | `TagUpdateResult` |
 | GET | `/api/gold/catalog/{entryId}/related` | 類似または関連する Gold エントリを取得する | `entryId`, `limit`, `strategy` | `RelatedCatalogEntry[]` |
-| GET | `/api/gold/catalog/{entryId}/history` | 更新履歴を取得する | `entryId`, `page`, `pageSize` | `EntryHistory[]` |
-| GET | `/api/search` | キーワード、タグ、認証条件で検索する | `q`, `tags[]`, `authType`, `client`, `page`, `pageSize` | `CatalogSearchResult` |
+| GET | `/api/system/capabilities` | 有効な LLM / Embedding / Search capabilities を返す | なし | `SystemCapabilities` |
+| GET | `/api/gold/catalog/{entryId}/history` | 更新履歴を取得する | `entryId`, `page`, `pageSize` | `EntryHistoryPage` |
+| GET | `/api/search` | キーワード、タグ、認証条件、クライアント条件で検索する | `q`, `tags[]`, `authType`, `client`, `page`, `pageSize` | `CatalogSearchResult` |
 | POST | `/api/search/query` | 複雑な条件をリクエストボディで検索する | `CatalogSearchQuery` | `CatalogSearchResult` |
 | GET | `/api/search/suggestions` | 検索キーワード候補を返す | `q`, `limit`, `scope` | `SearchSuggestionResult` |
 | GET | `/api/search/facets` | 絞り込み候補と件数を返す | `q`, `tags[]`, `authType`, `client` | `SearchFacetResult` |
@@ -97,7 +102,7 @@ Bronze データをもとに Silver または Gold まで整理する。
 
 #### 挙動
 - `useLlm=false` の場合は規則ベース整理を行う
-- `useLlm=true` かつ LLM 設定が無効な場合は `409 Conflict` を返す
+- `useLlm=true` でも LLM が未設定または一時的に利用不可な場合は規則ベース整理へフォールバックし、レスポンスの `usedLlm` は `false` にする
 - `mode=preview` の場合は永続化せず提案内容のみ返す
 - `targetLayer=silver` の場合は Silver 下書きで停止する
 
@@ -111,6 +116,51 @@ Bronze データをもとに Silver または Gold まで整理する。
 	"goldEntryId": "65dbcc38-2f26-4c99-8a8e-5e3cedaf01a3",
 	"proposedTags": ["registry", "search", "github"],
 	"changeSummary": "README を解析し、公開用エントリを生成しました。"
+}
+```
+
+### PUT `/api/gold/catalog/{entryId}`
+Gold エントリの本文情報を更新する。
+タグはこの API では更新せず、専用のタグ更新 API で扱う。
+
+#### リクエスト
+```json
+{
+	"overview": "GitHub 上の MCP サーバーを検索するためのサーバーです。",
+	"setupGuide": "1. package を install する\n2. config を設定する",
+	"references": [
+		"https://github.com/example/mcp-server",
+		"https://example.dev/docs"
+	],
+	"supportedClients": ["VS Code", "Claude Desktop"]
+}
+```
+
+#### バリデーション
+- `overview` は必須
+- `setupGuide` は必須
+- `references` は 1 件以上を推奨し、空文字を含めない
+- `supportedClients` は重複を含めない
+
+#### 挙動
+- 更新時は `updatedAtUtc` を更新する
+- 変更内容は履歴に `catalog-updated` として記録する
+- タグ更新は行わない
+
+#### レスポンス
+```json
+{
+	"id": "65dbcc38-2f26-4c99-8a8e-5e3cedaf01a3",
+	"displayName": "GitHub MCP Registry",
+	"overview": "GitHub 上の MCP サーバーを検索するためのサーバーです。",
+	"tags": ["search", "github", "registry"],
+	"setupGuide": "1. package を install する\n2. config を設定する",
+	"references": [
+		"https://github.com/example/mcp-server",
+		"https://example.dev/docs"
+	],
+	"supportedClients": ["VS Code", "Claude Desktop"],
+	"historyCount": 3
 }
 ```
 
@@ -164,7 +214,7 @@ Gold エントリの更新履歴を取得する。
 
 #### クエリパラメータ
 - `q`: キーワード。名前、概要、ツール名を検索対象に含む
-- `tags`: タグの AND 条件
+- `tags`: タグの AND 条件。MVP ではカテゴリ絞り込みもこの項目で表現する
 - `authType`: `none`, `api-key`, `oauth`, `unknown`
 - `client`: 対応クライアント名
 - `sort`: `relevance`, `updated-desc`, `name-asc`
@@ -263,15 +313,45 @@ GET のクエリ文字列で表現しづらい条件を扱う。
 
 #### レスポンス
 ```json
+[
+	{
+		"entryId": "f3721ae3-4e3a-47ea-b3c0-3319a865f8dc",
+		"displayName": "GitHub Search MCP",
+		"score": 0.83,
+		"reasons": ["shared-tag:github", "shared-tool:search"]
+	}
+]
+```
+
+### GET `/api/system/capabilities`
+実行環境で有効な機能と Adapter 種別を返す。
+クライアントはこの API を使って、LLM 整理や Embedding 類似検索が有効かを判定できる。
+
+#### レスポンス
+```json
 {
-	"items": [
-		{
-			"entryId": "f3721ae3-4e3a-47ea-b3c0-3319a865f8dc",
-			"displayName": "GitHub Search MCP",
-			"score": 0.83,
-			"reasons": ["shared-tag:github", "shared-tool:search"]
-		}
-	]
+	"knowledgeStore": {
+		"provider": "sqlite",
+		"replaceable": true
+	},
+	"llm": {
+		"enabled": true,
+		"provider": "foundry",
+		"model": "configured-at-runtime",
+		"replaceable": true
+	},
+	"embedding": {
+		"enabled": false,
+		"provider": "none",
+		"replaceable": true
+	},
+	"search": {
+		"supportsStructuredSearch": true,
+		"supportsSuggestions": true,
+		"supportsFacets": true,
+		"supportsRelatedEntries": true,
+		"supportsSemanticSearch": false
+	}
 }
 ```
 
@@ -342,6 +422,26 @@ GET のクエリ文字列で表現しづらい条件を扱う。
 | `displayName` | `string` | 表示名 |
 | `score` | `decimal` | 関連度スコア |
 | `reasons` | `string[]` | 関連理由 |
+
+### EntryHistoryPage
+| 項目 | 型 | 説明 |
+|:--|:--|:--|
+| `items` | `EntryHistory[]` | 履歴一覧 |
+| `page` | `int` | 現在ページ |
+| `pageSize` | `int` | ページサイズ |
+| `totalCount` | `int` | 総件数 |
+
+### SystemCapabilities
+| 項目 | 型 | 説明 |
+|:--|:--|:--|
+| `knowledgeStore.provider` | `string` | 現在の DB provider |
+| `knowledgeStore.replaceable` | `bool` | 差し替え可能か |
+| `llm.enabled` | `bool` | LLM 整理が有効か |
+| `llm.provider` | `string` | LLM provider 名 |
+| `llm.model` | `string` | 使用モデル名または runtime configured |
+| `embedding.enabled` | `bool` | Embedding が有効か |
+| `embedding.provider` | `string` | Embedding provider 名 |
+| `search.supportsSemanticSearch` | `bool` | Embedding ベース検索が有効か |
 
 ## 共通仕様
 ### 認証方式

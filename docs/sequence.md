@@ -77,7 +77,47 @@ sequenceDiagram
     User->>API: GET /api/gold/catalog/{id}/history
     API->>HistoryService: ListAsync(entryId, page, pageSize)
     HistoryService->>DB: 履歴を取得
-    DB-->>HistoryService: EntryHistory[]
-    HistoryService-->>API: EntryHistory[]
+    DB-->>HistoryService: EntryHistoryPage
+    HistoryService-->>API: EntryHistoryPage
     API-->>User: 200 OK
+```
+
+## LLM と Embedding が有効な場合の整理フロー
+```mermaid
+sequenceDiagram
+    actor Maintainer
+    participant API
+    participant Organizer as AgentOrganization
+    participant LlmAdapter as LLM Adapter
+    participant SilverService as SilverNormalizationService
+    participant GoldService as GoldCurationService
+    participant EmbIndex as EmbeddingIndexService
+    participant HistoryService
+    participant DB as Knowledge Store
+    participant LLM as Replaceable LLM
+    participant EMB as Replaceable Embedding Model
+
+    Maintainer->>API: POST /api/bronze/sources/{id}:organize useLlm=true
+    API->>Organizer: OrganizeAsync(bronzeId)
+    Organizer->>LlmAdapter: Summarize / Tag / Relate
+    LlmAdapter->>LLM: 構造化出力要求
+    LLM-->>LlmAdapter: JSON 結果
+    LlmAdapter-->>Organizer: OrganizationResult
+    Organizer->>SilverService: NormalizeAsync(...)
+    SilverService->>DB: Silver 保存
+    Organizer->>GoldService: PublishAsync(...)
+    GoldService->>DB: Gold 保存
+
+    alt Embedding enabled
+        GoldService->>EmbIndex: IndexAsync(entryId)
+        EmbIndex->>EMB: ベクトル生成
+        EMB-->>EmbIndex: Embedding vector
+        EmbIndex->>DB: 索引保存
+    else Embedding disabled
+        GoldService-->>Organizer: No-op
+    end
+
+    GoldService->>HistoryService: AppendAsync(entryId, "organized-with-llm")
+    HistoryService->>DB: 履歴保存
+    API-->>Maintainer: 200 OK
 ```
