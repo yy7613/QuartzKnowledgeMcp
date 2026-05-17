@@ -1,0 +1,6 @@
+@QuartzKnowledgeMcp_Api_HostAddress = http://localhost:5080
+
+GET {{QuartzKnowledgeMcp_Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

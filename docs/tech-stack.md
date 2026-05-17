@@ -37,6 +37,14 @@
 - Embedding は今は採用を固定せず、後から `text-embedding-3-small` または `text-embedding-3-large` を追加できるよう分離する
 - DB は SQLite を既定とするが、PostgreSQL など他 provider へ差し替え可能な構成を維持する
 
+## MCP 実装参照
+- MCP 実装は Microsoft Agent Framework の .NET サンプル `ModelContextProtocol` を第一参照にする
+- 基本的な MCP server tools の実装は `Agent_MCP_Server` を参照する
+- 保護された MCP server の認可付き実装は `Agent_MCP_Server_Auth` を参照する
+- Hosted MCP パターンは `ResponseAgent_Hosted_MCP` を参照する
+- サンプルの前提である .NET 10、Azure OpenAI 環境変数、`az login` による認証フローは、MCP 実装時の参考手順として扱う
+- 本リポジトリでは model / provider 固定は行わず、MCP tool の接続方法とホスト構成の実装パターンのみを参照する
+
 ## 却下した選択肢
 - Python 単独実装
 	- Microsoft Agent Framework 自体は使えるが、EF Core を中心にした永続化設計と一貫しない

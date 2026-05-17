@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="McpKnowledgeBase.Api/McpServerCatalog.Api.csproj" />
-  <Project Path="McpKnowledgeBase.Tests/McpServerCatalog.Tests.csproj" />
-</Solution>

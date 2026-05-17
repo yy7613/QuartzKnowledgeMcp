@@ -33,6 +33,7 @@
 ## 参考になりそうなもの
 - Model Context Protocol の公式仕様
 - Microsoft Agent Framework の公式ドキュメントとサンプル
+  - 特に .NET sample `ModelContextProtocol`
 - EF Core の provider abstraction と SQLite provider のドキュメント
 - 公開されている MCP サーバーの GitHub リポジトリ
 - 各サーバーの README、セットアップガイド、利用例

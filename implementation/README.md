@@ -11,6 +11,12 @@
 - 初期フェーズは具体実装を優先し、後半フェーズで抽象化と差し替え性を追加すること
 - LLM と Embedding はオプション機能とし、未設定でも主機能が成立すること
 
+## MCP 実装参照ルール
+- MCP の実装方法は Microsoft Agent Framework .NET sample の `ModelContextProtocol` を第一参照にする
+- 基本実装は `Agent_MCP_Server`、認可付き実装は `Agent_MCP_Server_Auth`、Hosted MCP は `ResponseAgent_Hosted_MCP` の構成を参考にする
+- 本リポジトリではサンプルの Azure OpenAI 前提をそのまま固定せず、MCP server / tool wiring と認証フローの実装パターンを参照する
+- 実装フェーズで MCP host や tool surface を追加する場合は、参照した sample 名を完了レポートに記録する
+
 ## フェーズ進行ルール
 - 次のフェーズへ進む前に、直前フェーズのテストカバレッジ率を計測し、目標値と実測値を完了レポートに記録すること
 - 次のフェーズへ進む前に、直前フェーズで影響を受ける主要ユースケースの回帰テストを実施し、結果を完了レポートに記録すること
