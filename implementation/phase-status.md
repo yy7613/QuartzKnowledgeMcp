@@ -12,7 +12,7 @@
 | Phase | Phase status | Coverage target | Coverage actual | Coverage recorded | Regression done | Report done | Next phase unlocked | Notes |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|
 | Phase 01 | completed | 70% | 70.00% | yes | yes | yes | yes | `GET /health` verified with HTTP 200. |
-| Phase 02 | not-started | 70% | TBD | no | no | no | no | |
+| Phase 02 | completed | 70% | 95.94% | yes | yes | yes | yes | Bronze registration/list/detail verified with SQLite and HTTP API. |
 | Phase 03 | not-started | 70% | TBD | no | no | no | no | |
 | Phase 04 | not-started | 70% | TBD | no | no | no | no | |
 | Phase 05 | not-started | 75% | TBD | no | no | no | no | |

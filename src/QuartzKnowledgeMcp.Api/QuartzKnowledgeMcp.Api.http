@@ -4,3 +4,20 @@ GET {{QuartzKnowledgeMcp_Api_HostAddress}}/health
 Accept: application/json
 
 ###
+
+POST {{QuartzKnowledgeMcp_Api_HostAddress}}/api/bronze/sources
+Content-Type: application/json
+
+{
+  "sourceType": "manual",
+  "sourceUri": "https://github.com/example/mcp-server",
+  "rawContent": "# Example MCP Server\n...",
+  "importedBy": "local"
+}
+
+###
+
+GET {{QuartzKnowledgeMcp_Api_HostAddress}}/api/bronze/sources
+Accept: application/json
+
+###
