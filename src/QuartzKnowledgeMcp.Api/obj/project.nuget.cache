@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ifJc/+PngnY=",
+  "dgSpecHash": "BesZUVCOvAU=",
   "success": true,
   "projectFilePath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\QuartzKnowledgeMcp.Api.csproj",
   "expectedPackageFiles": [
@@ -16,7 +16,6 @@
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.agents.ai\\1.6.1\\microsoft.agents.ai.1.6.1.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.agents.ai.abstractions\\1.6.1\\microsoft.agents.ai.abstractions.1.6.1.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.agents.ai.foundry\\1.6.1-preview.260514.1\\microsoft.agents.ai.foundry.1.6.1-preview.260514.1.nupkg.sha512",
-    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.8\\microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\10.0.6\\microsoft.bcl.asyncinterfaces.10.0.6.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",
@@ -44,7 +43,6 @@
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.identity.client.extensions.msal\\4.83.1\\microsoft.identity.client.extensions.msal.4.83.1.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.14.0\\microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.ml.tokenizers\\2.0.0\\microsoft.ml.tokenizers.2.0.0.nupkg.sha512",
-    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.visualstudio.solutionpersistence\\1.0.52\\microsoft.visualstudio.solutionpersistence.1.0.52.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\YUKI28295\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",

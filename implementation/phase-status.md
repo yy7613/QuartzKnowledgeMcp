@@ -11,7 +11,7 @@
 ## 一覧
 | Phase | Phase status | Coverage target | Coverage actual | Coverage recorded | Regression done | Report done | Next phase unlocked | Notes |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| Phase 01 | not-started | 70% | TBD | no | no | no | no | |
+| Phase 01 | completed | 70% | 70.00% | yes | yes | yes | yes | `GET /health` verified with HTTP 200. |
 | Phase 02 | not-started | 70% | TBD | no | no | no | no | |
 | Phase 03 | not-started | 70% | TBD | no | no | no | no | |
 | Phase 04 | not-started | 70% | TBD | no | no | no | no | |

@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="QuartzKnowledgeMcp.Api/QuartzKnowledgeMcp.Api.csproj" />
-  <Project Path="QuartzKnowledgeMcp.Tests/QuartzKnowledgeMcp.Tests.csproj" />
-</Solution>

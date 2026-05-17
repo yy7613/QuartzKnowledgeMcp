@@ -227,28 +227,6 @@
           }
         }
       },
-      "Microsoft.AspNetCore.OpenApi/10.0.8": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.OpenApi": "2.0.0"
-        },
-        "compile": {
-          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "related": ".xml"
-          }
-        },
-        "frameworkReferences": [
-          "Microsoft.AspNetCore.App"
-        ],
-        "build": {
-          "build/Microsoft.AspNetCore.OpenApi.targets": {}
-        }
-      },
       "Microsoft.Bcl.AsyncInterfaces/10.0.6": {
         "type": "package",
         "compile": {
@@ -887,19 +865,6 @@
         "runtime": {
           "lib/net8.0/Microsoft.ML.Tokenizers.dll": {
             "related": ".xml"
-          }
-        }
-      },
-      "Microsoft.OpenApi/2.0.0": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/Microsoft.OpenApi.dll": {
-            "related": ".pdb;.xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Microsoft.OpenApi.dll": {
-            "related": ".pdb;.xml"
           }
         }
       },
@@ -1580,24 +1545,6 @@
         "lib/netstandard2.0/Microsoft.Agents.AI.Foundry.xml",
         "microsoft.agents.ai.foundry.1.6.1-preview.260514.1.nupkg.sha512",
         "microsoft.agents.ai.foundry.nuspec"
-      ]
-    },
-    "Microsoft.AspNetCore.OpenApi/10.0.8": {
-      "sha512": "cw24xHE2QaWwyEG9GQwFbjboyabub6Vd80DIItUGENzcQOa/BEnTrXsg2GADqWTmY/3ycqk9ToLGjgvF/VRlGA==",
-      "type": "package",
-      "path": "microsoft.aspnetcore.openapi/10.0.8",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "PACKAGE.md",
-        "THIRD-PARTY-NOTICES.TXT",
-        "analyzers/dotnet/cs/Microsoft.AspNetCore.OpenApi.SourceGenerators.dll",
-        "build/Microsoft.AspNetCore.OpenApi.targets",
-        "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll",
-        "lib/net10.0/Microsoft.AspNetCore.OpenApi.xml",
-        "microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
-        "microsoft.aspnetcore.openapi.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/10.0.6": {
@@ -3075,24 +3022,6 @@
         "mlnetlogo.png"
       ]
     },
-    "Microsoft.OpenApi/2.0.0": {
-      "sha512": "GGYLfzV/G/ct80OZ45JxnWP7NvMX1BCugn/lX7TH5o0lcVaviavsLMTxmFV2AybXWjbi3h6FF1vgZiTK6PXndw==",
-      "type": "package",
-      "path": "microsoft.openapi/2.0.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "lib/net8.0/Microsoft.OpenApi.dll",
-        "lib/net8.0/Microsoft.OpenApi.pdb",
-        "lib/net8.0/Microsoft.OpenApi.xml",
-        "lib/netstandard2.0/Microsoft.OpenApi.dll",
-        "lib/netstandard2.0/Microsoft.OpenApi.pdb",
-        "lib/netstandard2.0/Microsoft.OpenApi.xml",
-        "microsoft.openapi.2.0.0.nupkg.sha512",
-        "microsoft.openapi.nuspec"
-      ]
-    },
     "Microsoft.VisualStudio.SolutionPersistence/1.0.52": {
       "sha512": "oNv2JtYXhpdJrX63nibx1JT3uCESOBQ1LAk7Dtz/sr0+laW0KRM6eKp4CZ3MHDR2siIkKsY8MmUkeP5DKkQQ5w==",
       "type": "package",
@@ -3624,7 +3553,6 @@
       "Azure.Identity >= 1.21.0",
       "Microsoft.Agents.AI >= 1.6.1",
       "Microsoft.Agents.AI.Foundry >= 1.6.1-preview.260514.1",
-      "Microsoft.AspNetCore.OpenApi >= 10.0.8",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.8",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.8"
     ]
@@ -3637,11 +3565,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "e:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\QuartzKnowledgeMcp.Api.csproj",
+      "projectUniqueName": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\QuartzKnowledgeMcp.Api.csproj",
       "projectName": "QuartzKnowledgeMcp.Api",
-      "projectPath": "e:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\QuartzKnowledgeMcp.Api.csproj",
+      "projectPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\QuartzKnowledgeMcp.Api.csproj",
       "packagesPath": "C:\\Users\\YUKI28295\\.nuget\\packages\\",
-      "outputPath": "e:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\obj\\",
+      "outputPath": "E:\\vscode\\Zenn\\Know_MCPServer\\src\\QuartzKnowledgeMcp.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -3697,10 +3625,6 @@
           "Microsoft.Agents.AI.Foundry": {
             "target": "Package",
             "version": "[1.6.1-preview.260514.1, )"
-          },
-          "Microsoft.AspNetCore.OpenApi": {
-            "target": "Package",
-            "version": "[10.0.8, )"
           },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
