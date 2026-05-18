@@ -4,6 +4,7 @@ using QuartzKnowledgeMcp.Api.Bronze;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Health;
 using QuartzKnowledgeMcp.Api.Persistence;
+using QuartzKnowledgeMcp.Api.Search;
 using QuartzKnowledgeMcp.Api.Silver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,7 @@ builder.Services.AddScoped<BronzeIngestionService>();
 builder.Services.AddScoped<RuleBasedSilverNormalizer>();
 builder.Services.AddScoped<SilverDraftService>();
 builder.Services.AddScoped<GoldCatalogService>();
+builder.Services.AddScoped<CatalogSearchService>();
 
 var app = builder.Build();
 
@@ -41,6 +43,7 @@ app.MapGet("/health", (IHealthStatusService healthStatusService) =>
 app.MapBronzeEndpoints();
 app.MapSilverEndpoints();
 app.MapGoldEndpoints();
+app.MapSearchEndpoints();
 
 app.Run();
 

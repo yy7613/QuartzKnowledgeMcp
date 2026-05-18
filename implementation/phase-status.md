@@ -15,12 +15,12 @@
 | Phase 02 | completed | 70% | 95.94% | yes | yes | yes | yes | Bronze registration/list/detail verified with SQLite and HTTP API. |
 | Phase 03 | completed | 70% | 77.40% | yes | yes | yes | yes | Silver organize/list/detail verified with SQLite, unit tests, and HTTP smoke. |
 | Phase 04 | completed | 70% | 79.85% | yes | yes | yes | yes | Gold publish/detail and history verified with SQLite, unit tests, and HTTP smoke. |
-| Phase 05 | not-started | 75% | TBD | no | no | no | no | |
-| Phase 06 | not-started | 75% | TBD | no | no | no | no | |
+| Phase 05 | completed | 75% | 86.37% | yes | yes | yes | yes | Gold list/search and API integration tests verified with SQLite and WebApplicationFactory. |
+| Phase 06 | completed | 75% | 86.31% | yes | yes | yes | yes | Gold update, tag replacement, and history paging verified with unit/API tests. |
 | Phase 07 | not-started | 80% | TBD | no | no | no | no | |
 | Phase 08 | not-started | 80% | TBD | no | no | no | no | |
 | Phase 09 | not-started | 80% | TBD | no | no | no | no | |
 | Phase 10 | not-started | 80% | TBD | no | no | no | no | |
 | Phase 11 | not-started | 80% | TBD | no | no | no | no | |
-| Phase 12 | not-started | 80% | TBD | no | no | no | no | |
+| Phase 12 | in-progress | 80% | TBD | no | no | no | no | Suggestions and facets are being implemented ahead of schedule. |
 | Phase 13 | not-started | 85% | TBD | no | no | no | no | |
