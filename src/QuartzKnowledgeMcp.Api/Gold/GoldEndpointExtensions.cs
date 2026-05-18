@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using QuartzKnowledgeMcp.Api.Application;
 
 namespace QuartzKnowledgeMcp.Api.Gold;
 
@@ -10,7 +11,7 @@ public static class GoldEndpointExtensions
         var group = endpoints.MapGroup("/api/gold/catalog");
 
         group.MapGet("", async (
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             int? page,
             int? pageSize,
             string? tag,
@@ -31,7 +32,7 @@ public static class GoldEndpointExtensions
 
         group.MapGet("/{entryId:guid}", async (
             Guid entryId,
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             CancellationToken cancellationToken) =>
         {
             var response = await service.GetDetailAsync(entryId, cancellationToken);
@@ -44,7 +45,7 @@ public static class GoldEndpointExtensions
         group.MapPut("/{entryId:guid}", async (
             Guid entryId,
             UpdateGoldCatalogEntryRequest request,
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             CancellationToken cancellationToken) =>
         {
             try
@@ -66,7 +67,7 @@ public static class GoldEndpointExtensions
         group.MapPut("/{entryId:guid}/tags", async (
             Guid entryId,
             ReplaceGoldCatalogTagsRequest request,
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             CancellationToken cancellationToken) =>
         {
             try
@@ -87,7 +88,7 @@ public static class GoldEndpointExtensions
 
         group.MapGet("/{entryId:guid}/history", async (
             Guid entryId,
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             int? page,
             int? pageSize,
             CancellationToken cancellationToken) =>

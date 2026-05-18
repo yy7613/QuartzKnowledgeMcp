@@ -4,6 +4,7 @@ using QuartzKnowledgeMcp.Api.Bronze;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Silver;
+using QuartzKnowledgeMcp.Tests.Infrastructure;
 
 namespace QuartzKnowledgeMcp.Tests.Gold;
 
@@ -12,8 +13,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task UpdateAsync_UpdatesEditableFieldsOnly_AndKeepsTags()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
@@ -37,8 +38,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task UpdateAsync_AppendsHistory_WhenCatalogUpdated()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
@@ -62,8 +63,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task UpdateAsync_RejectsMissingOverview()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext);
 
@@ -83,8 +84,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task ReplaceTagsAsync_RejectsTooManyTags()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext);
 
@@ -101,8 +102,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task ReplaceTagsAsync_RejectsDuplicateTags()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext);
 
@@ -119,8 +120,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task ReplaceTagsAsync_AppendsHistory_WhenTagsUpdated()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
@@ -139,8 +140,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task GetHistoryAsync_ReturnsPagedItems()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
         var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
         await service.UpdateAsync(
@@ -168,8 +169,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task PublishAsync_CreatesGoldEntry_WhenSilverDraftExists()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var silverDraft = await CreateSilverDraftAsync(dbContext);
         var service = CreateService(dbContext);
 
@@ -186,8 +187,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task PublishAsync_AppendsHistory_WhenEntryAlreadyExists()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var silverDraft = await CreateSilverDraftAsync(dbContext);
         var service = CreateService(dbContext);
 
@@ -210,8 +211,8 @@ public class GoldCatalogServiceTests
     [Fact]
     public async Task PublishAsync_Throws_WhenSilverDraftDoesNotExist()
     {
-        await using var connection = await OpenConnectionAsync();
-        await using var dbContext = await CreateDbContextAsync(connection);
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var service = CreateService(dbContext);
 
         await Assert.ThrowsAsync<SilverDraftNotFoundException>(() =>
@@ -254,24 +255,6 @@ public class GoldCatalogServiceTests
         return organize.Draft;
     }
 
-    private static async Task<SqliteConnection> OpenConnectionAsync()
-    {
-        var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
-        return connection;
-    }
-
-    private static async Task<McpKnowledgeDbContext> CreateDbContextAsync(SqliteConnection connection)
-    {
-        var options = new DbContextOptionsBuilder<McpKnowledgeDbContext>()
-            .UseSqlite(connection)
-            .Options;
-
-        var dbContext = new McpKnowledgeDbContext(options);
-        await dbContext.Database.EnsureCreatedAsync();
-        return dbContext;
-    }
-
     private static BronzeIngestionService CreateBronzeService(McpKnowledgeDbContext dbContext)
     {
         return new BronzeIngestionService(
@@ -282,8 +265,9 @@ public class GoldCatalogServiceTests
     private static SilverDraftService CreateSilverService(McpKnowledgeDbContext dbContext)
     {
         return new SilverDraftService(
-            dbContext,
-            new RuleBasedSilverNormalizer(),
+            KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
+            new RuleBasedOrganizationAgent(new RuleBasedSilverNormalizer()),
             new FixedTimeProvider(new DateTimeOffset(2026, 5, 18, 9, 0, 0, TimeSpan.Zero)));
     }
 
@@ -292,7 +276,9 @@ public class GoldCatalogServiceTests
         DateTimeOffset? utcNow = null)
     {
         return new GoldCatalogService(
-            dbContext,
+            KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateHistoryRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
             new FixedTimeProvider(utcNow ?? new DateTimeOffset(2026, 5, 18, 10, 0, 0, TimeSpan.Zero)));
     }
 

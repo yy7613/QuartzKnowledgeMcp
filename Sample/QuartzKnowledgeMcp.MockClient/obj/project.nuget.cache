@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "dgSpecHash": "oejMr9S754I=",
+  "success": true,
+  "projectFilePath": "E:\\vscode\\Zenn\\Know_MCPServer\\Sample\\QuartzKnowledgeMcp.MockClient\\QuartzKnowledgeMcp.MockClient.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.5.2\\microsoft.extensions.ai.abstractions.10.5.2.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\10.0.7\\microsoft.extensions.caching.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\10.0.7\\microsoft.extensions.configuration.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.7\\microsoft.extensions.dependencyinjection.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\10.0.7\\microsoft.extensions.diagnostics.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\10.0.7\\microsoft.extensions.fileproviders.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\10.0.7\\microsoft.extensions.hosting.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.7\\microsoft.extensions.logging.abstractions.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.options\\10.0.7\\microsoft.extensions.options.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.7\\microsoft.extensions.primitives.10.0.7.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\modelcontextprotocol\\1.3.0\\modelcontextprotocol.1.3.0.nupkg.sha512",
+    "C:\\Users\\YUKI28295\\.nuget\\packages\\modelcontextprotocol.core\\1.3.0\\modelcontextprotocol.core.1.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}

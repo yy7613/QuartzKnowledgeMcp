@@ -7,7 +7,9 @@ public sealed record CreateBronzeSourceRequest(
     string? ImportedBy);
 
 public sealed record OrganizeBronzeSourceRequest(
-    string? Mode);
+    string? Mode,
+    bool? UseLlm = null,
+    bool? Preview = null);
 
 public sealed record BronzeSourceResponse(
     Guid Id,

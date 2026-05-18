@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Silver;
 
 namespace QuartzKnowledgeMcp.Api.Bronze;
@@ -62,18 +63,21 @@ public static class BronzeEndpointExtensions
         group.MapPost("/{bronzeId:guid}:organize", async (
             Guid bronzeId,
             OrganizeBronzeSourceRequest? request,
-            SilverDraftService service,
+            SilverDraftApplicationService service,
             CancellationToken cancellationToken) =>
         {
             try
             {
                 var result = await service.OrganizeAsync(
                     bronzeId,
-                    request?.Mode,
+                    request,
                     cancellationToken);
-                var response = SilverDraftService.ToDetailResponse(result.Draft);
+                var response = SilverDraftService.ToDetailResponse(
+                    result.Draft,
+                    result.UsedLlm,
+                    result.Preview);
 
-                return result.Created
+                return !result.Preview && result.Created
                     ? Results.Created($"/api/silver/server-drafts/{response.Id}", response)
                     : Results.Ok(response);
             }

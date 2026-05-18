@@ -5,6 +5,7 @@ using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Search;
 using QuartzKnowledgeMcp.Api.Silver;
+using QuartzKnowledgeMcp.Tests.Infrastructure;
 
 namespace QuartzKnowledgeMcp.Tests.Search;
 
@@ -133,8 +134,16 @@ public class CatalogSearchServiceTests
         bool includeAzureKeyword = false)
     {
         var bronzeService = new BronzeIngestionService(dbContext, new FixedTimeProvider(timestamp.AddMinutes(-2)));
-        var silverService = new SilverDraftService(dbContext, new RuleBasedSilverNormalizer(), new FixedTimeProvider(timestamp.AddMinutes(-1)));
-        var goldService = new GoldCatalogService(dbContext, new FixedTimeProvider(timestamp));
+        var silverService = new SilverDraftService(
+            KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
+            new RuleBasedOrganizationAgent(new RuleBasedSilverNormalizer()),
+            new FixedTimeProvider(timestamp.AddMinutes(-1)));
+        var goldService = new GoldCatalogService(
+            KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateHistoryRepository(dbContext),
+            KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
+            new FixedTimeProvider(timestamp));
 
         var summaryKeywords = new List<string>();
         if (includeGithubKeyword)

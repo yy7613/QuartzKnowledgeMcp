@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuartzKnowledgeMcp.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37c43a9e97a074c581ab551840c3911a5eefa7f2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c2f84703589f0f01c9a2fb9b053150fbdeb6c47")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuartzKnowledgeMcp.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuartzKnowledgeMcp.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

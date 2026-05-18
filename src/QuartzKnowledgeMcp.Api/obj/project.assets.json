@@ -712,7 +712,7 @@
           }
         }
       },
-      "Microsoft.Extensions.AI.Abstractions/10.5.1": {
+      "Microsoft.Extensions.AI.Abstractions/10.5.2": {
         "type": "package",
         "compile": {
           "lib/net10.0/Microsoft.Extensions.AI.Abstractions.dll": {
@@ -877,6 +877,57 @@
         },
         "runtime": {
           "lib/net8.0/Microsoft.VisualStudio.SolutionPersistence.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "ModelContextProtocol/1.3.0": {
+        "type": "package",
+        "dependencies": {
+          "ModelContextProtocol.Core": "1.3.0"
+        },
+        "compile": {
+          "lib/net10.0/ModelContextProtocol.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/ModelContextProtocol.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "ModelContextProtocol.AspNetCore/1.3.0": {
+        "type": "package",
+        "dependencies": {
+          "ModelContextProtocol": "1.3.0"
+        },
+        "compile": {
+          "lib/net10.0/ModelContextProtocol.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/ModelContextProtocol.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "ModelContextProtocol.Core/1.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.5.2"
+        },
+        "compile": {
+          "lib/net10.0/ModelContextProtocol.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/ModelContextProtocol.Core.dll": {
             "related": ".xml"
           }
         }
@@ -2796,10 +2847,10 @@
         "microsoft.extensions.ai.nuspec"
       ]
     },
-    "Microsoft.Extensions.AI.Abstractions/10.5.1": {
-      "sha512": "nB0l3IlsVbNeUxsE7nZNb9GY8rP1OSeqpj0pseORPejt474HNKEauTWTLdSJPkSvPlRMxowZNMo6nyp7APAiSg==",
+    "Microsoft.Extensions.AI.Abstractions/10.5.2": {
+      "sha512": "Ei+YWV9Ybnps7pR1dgjlG29gelXEwZkhLVAcWmKe6HvXS6LNBYgSdWiY3Hk9OZXYtK34rv/NtLWBQYQGOBQYPQ==",
       "type": "package",
-      "path": "microsoft.extensions.ai.abstractions/10.5.1",
+      "path": "microsoft.extensions.ai.abstractions/10.5.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2815,7 +2866,7 @@
         "lib/net9.0/Microsoft.Extensions.AI.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.AI.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.AI.Abstractions.xml",
-        "microsoft.extensions.ai.abstractions.10.5.1.nupkg.sha512",
+        "microsoft.extensions.ai.abstractions.10.5.2.nupkg.sha512",
         "microsoft.extensions.ai.abstractions.nuspec"
       ]
     },
@@ -3038,6 +3089,68 @@
         "lib/net8.0/manifest.spdx.json",
         "microsoft.visualstudio.solutionpersistence.1.0.52.nupkg.sha512",
         "microsoft.visualstudio.solutionpersistence.nuspec"
+      ]
+    },
+    "ModelContextProtocol/1.3.0": {
+      "sha512": "WDaD6z9KkkCUHSo15xK7tYBERHy8uqP+cIUp8uIxhR0yrlpJLXTRcJcUUVqpXlBkV7MK9Eo3mTrAnctLnJuHDQ==",
+      "type": "package",
+      "path": "modelcontextprotocol/1.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/ModelContextProtocol.dll",
+        "lib/net10.0/ModelContextProtocol.xml",
+        "lib/net8.0/ModelContextProtocol.dll",
+        "lib/net8.0/ModelContextProtocol.xml",
+        "lib/net9.0/ModelContextProtocol.dll",
+        "lib/net9.0/ModelContextProtocol.xml",
+        "lib/netstandard2.0/ModelContextProtocol.dll",
+        "lib/netstandard2.0/ModelContextProtocol.xml",
+        "logo.png",
+        "modelcontextprotocol.1.3.0.nupkg.sha512",
+        "modelcontextprotocol.nuspec"
+      ]
+    },
+    "ModelContextProtocol.AspNetCore/1.3.0": {
+      "sha512": "bKQAVc9Npwbbxaa53PTY5NCszoxkSIZ1ZyCpoVFHMQqZtEmXaYNz+2QUXmf0ILWQduRMd2GYi9TL431mMnpbCA==",
+      "type": "package",
+      "path": "modelcontextprotocol.aspnetcore/1.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/ModelContextProtocol.AspNetCore.dll",
+        "lib/net10.0/ModelContextProtocol.AspNetCore.xml",
+        "lib/net8.0/ModelContextProtocol.AspNetCore.dll",
+        "lib/net8.0/ModelContextProtocol.AspNetCore.xml",
+        "lib/net9.0/ModelContextProtocol.AspNetCore.dll",
+        "lib/net9.0/ModelContextProtocol.AspNetCore.xml",
+        "logo.png",
+        "modelcontextprotocol.aspnetcore.1.3.0.nupkg.sha512",
+        "modelcontextprotocol.aspnetcore.nuspec"
+      ]
+    },
+    "ModelContextProtocol.Core/1.3.0": {
+      "sha512": "OWmdxDSwA7K9pNNg4t98MXNIssHG/wOQEr/G8pG5B7synDdw4MnmZ/IIVeb3yUdeznPqnDHvd3FBCK0jRk4IZQ==",
+      "type": "package",
+      "path": "modelcontextprotocol.core/1.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "analyzers/dotnet/cs/ModelContextProtocol.Analyzers.dll",
+        "lib/net10.0/ModelContextProtocol.Core.dll",
+        "lib/net10.0/ModelContextProtocol.Core.xml",
+        "lib/net8.0/ModelContextProtocol.Core.dll",
+        "lib/net8.0/ModelContextProtocol.Core.xml",
+        "lib/net9.0/ModelContextProtocol.Core.dll",
+        "lib/net9.0/ModelContextProtocol.Core.xml",
+        "lib/netstandard2.0/ModelContextProtocol.Core.dll",
+        "lib/netstandard2.0/ModelContextProtocol.Core.xml",
+        "logo.png",
+        "modelcontextprotocol.core.1.3.0.nupkg.sha512",
+        "modelcontextprotocol.core.nuspec"
       ]
     },
     "Mono.TextTemplating/3.0.0": {
@@ -3554,7 +3667,8 @@
       "Microsoft.Agents.AI >= 1.6.1",
       "Microsoft.Agents.AI.Foundry >= 1.6.1-preview.260514.1",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.8",
-      "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.8"
+      "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.8",
+      "ModelContextProtocol.AspNetCore >= 1.3.0"
     ]
   },
   "packageFolders": {
@@ -3635,6 +3749,10 @@
           "Microsoft.EntityFrameworkCore.Sqlite": {
             "target": "Package",
             "version": "[10.0.8, )"
+          },
+          "ModelContextProtocol.AspNetCore": {
+            "target": "Package",
+            "version": "[1.3.0, )"
           }
         },
         "imports": [

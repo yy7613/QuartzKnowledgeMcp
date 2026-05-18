@@ -31,7 +31,9 @@ public sealed record SilverServerDraftDetailResponse(
     string Summary,
     IReadOnlyList<string> TagCandidates,
     IReadOnlyList<SilverToolDraftResponse> ToolDrafts,
-    DateTime OrganizedAtUtc);
+    DateTime OrganizedAtUtc,
+    bool UsedLlm = false,
+    bool Preview = false);
 
 public sealed record SilverServerDraftListResponse(
     IReadOnlyList<SilverServerDraftResponse> Items,
@@ -41,7 +43,9 @@ public sealed record SilverServerDraftListResponse(
 
 public sealed record SilverOrganizeResult(
     SilverServerDraft Draft,
-    bool Created);
+    bool Created,
+    bool UsedLlm = false,
+    bool Preview = false);
 
 public sealed record SilverOrganizeErrorResponse(
     string Code,

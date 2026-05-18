@@ -1,12 +1,15 @@
-using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Domain.Gold;
+using QuartzKnowledgeMcp.Api.Domain.Ports;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Silver;
 
 namespace QuartzKnowledgeMcp.Api.Gold;
 
 public sealed class GoldCatalogService(
-    McpKnowledgeDbContext dbContext,
+    IKnowledgeRepository knowledgeRepository,
+    IHistoryRepository historyRepository,
+    IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
 {
     public async Task<GoldCatalogEntryDetailResponse> UpdateAsync(
@@ -14,39 +17,46 @@ public sealed class GoldCatalogService(
         UpdateGoldCatalogEntryRequest request,
         CancellationToken cancellationToken = default)
     {
-        GoldValidation.ValidateCatalogUpdate(request);
+        var update = GoldCatalogUpdate.Create(
+            request.Overview,
+            request.SetupGuide,
+            request.References,
+            request.SupportedClients);
 
-        var entry = await dbContext.GoldCatalogEntries
-            .FirstOrDefaultAsync(catalogEntry => catalogEntry.Id == entryId, cancellationToken);
+        return await UpdateAsync(
+            entryId,
+            update,
+            request.UpdatedBy,
+            cancellationToken);
+    }
+
+    public async Task<GoldCatalogEntryDetailResponse> UpdateAsync(
+        Guid entryId,
+        GoldCatalogUpdate update,
+        string? updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var entry = await knowledgeRepository.GetGoldCatalogEntryAsync(entryId, cancellationToken);
 
         if (entry is null)
         {
             throw new GoldCatalogEntryNotFoundException(entryId);
         }
 
-        var actor = NormalizeActor(request.UpdatedBy);
+        var actor = NormalizeActor(updatedBy);
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        entry.Overview = request.Overview!.Trim();
-        entry.SetupGuide = request.SetupGuide!.Trim();
-        entry.ReferencesJson = GoldCatalogJson.Serialize(ToReferenceResponses(
-            GoldValidation.NormalizeReferences(request.References)));
-        entry.SupportedClientsJson = GoldCatalogJson.Serialize(
-            GoldValidation.NormalizeSupportedClients(request.SupportedClients));
+        entry.Overview = update.Overview;
+        entry.SetupGuide = update.SetupGuide;
+        entry.ReferencesJson = GoldCatalogJson.Serialize(ToReferenceResponses(update.References));
+        entry.SupportedClientsJson = GoldCatalogJson.Serialize(update.SupportedClients);
         entry.UpdatedAtUtc = now;
         entry.UpdatedBy = actor;
 
-        dbContext.EntryHistories.Add(new EntryHistory
-        {
-            Id = Guid.NewGuid(),
-            EntryId = entry.Id,
-            Action = EntryHistoryActions.CatalogUpdated,
-            ChangedBy = actor,
-            ChangedAtUtc = now,
-            Summary = "Catalog content updated.",
-            UsedLlm = false
-        });
+        historyRepository.AddEntryHistory(ToEntryHistory(
+            entry.Id,
+            GoldEntryHistoryFactory.CreateCatalogUpdated(actor, now)));
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return (await GetDetailAsync(entry.Id, cancellationToken))!;
     }
@@ -56,35 +66,39 @@ public sealed class GoldCatalogService(
         ReplaceGoldCatalogTagsRequest request,
         CancellationToken cancellationToken = default)
     {
-        var normalizedTags = GoldValidation.NormalizeTags(request.Tags);
-        var entry = await dbContext.GoldCatalogEntries
-            .FirstOrDefaultAsync(catalogEntry => catalogEntry.Id == entryId, cancellationToken);
+        return await ReplaceTagsAsync(
+            entryId,
+            GoldTagSet.Create(request.Tags),
+            request.UpdatedBy,
+            cancellationToken);
+    }
+
+    public async Task<GoldTagUpdateResponse> ReplaceTagsAsync(
+        Guid entryId,
+        GoldTagSet tagSet,
+        string? updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var entry = await knowledgeRepository.GetGoldCatalogEntryAsync(entryId, cancellationToken);
 
         if (entry is null)
         {
             throw new GoldCatalogEntryNotFoundException(entryId);
         }
 
-        var actor = NormalizeActor(request.UpdatedBy);
+        var actor = NormalizeActor(updatedBy);
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        entry.TagsJson = GoldCatalogJson.Serialize(normalizedTags);
+        entry.TagsJson = GoldCatalogJson.Serialize(tagSet.Values);
         entry.UpdatedAtUtc = now;
         entry.UpdatedBy = actor;
 
-        dbContext.EntryHistories.Add(new EntryHistory
-        {
-            Id = Guid.NewGuid(),
-            EntryId = entry.Id,
-            Action = EntryHistoryActions.TagsReplaced,
-            ChangedBy = actor,
-            ChangedAtUtc = now,
-            Summary = $"Tags replaced with {normalizedTags.Count} values.",
-            UsedLlm = false
-        });
+        historyRepository.AddEntryHistory(ToEntryHistory(
+            entry.Id,
+            GoldEntryHistoryFactory.CreateTagsReplaced(actor, now, tagSet.Values.Count)));
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new GoldTagUpdateResponse(entry.Id, normalizedTags, now, actor);
+        return new GoldTagUpdateResponse(entry.Id, tagSet.Values, now, actor);
     }
 
     public async Task<GoldPublishResult> PublishAsync(
@@ -92,23 +106,25 @@ public sealed class GoldCatalogService(
         string? publishedBy,
         CancellationToken cancellationToken = default)
     {
-        var silverDraft = await dbContext.SilverServerDrafts
-            .Include(draft => draft.ToolDrafts)
-            .FirstOrDefaultAsync(draft => draft.Id == silverId, cancellationToken);
+        var silverDraft = await knowledgeRepository.GetSilverDraftAsync(
+            silverId,
+            includeToolDrafts: true,
+            cancellationToken);
 
         if (silverDraft is null)
         {
             throw new SilverDraftNotFoundException(silverId);
         }
 
-        var bronzeSource = await dbContext.BronzeSources
-            .AsNoTracking()
-            .FirstOrDefaultAsync(source => source.Id == silverDraft.BronzeSourceId, cancellationToken);
+        var bronzeSource = await knowledgeRepository.GetBronzeSourceAsync(
+            silverDraft.BronzeSourceId,
+            cancellationToken);
 
         var actor = NormalizeActor(publishedBy);
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        var existingEntry = await dbContext.GoldCatalogEntries
-            .FirstOrDefaultAsync(entry => entry.SilverServerDraftId == silverId, cancellationToken);
+        var existingEntry = await knowledgeRepository.GetGoldCatalogEntryBySilverDraftIdAsync(
+            silverId,
+            cancellationToken);
         var created = existingEntry is null;
 
         var entry = existingEntry ?? new GoldCatalogEntry
@@ -140,27 +156,16 @@ public sealed class GoldCatalogService(
 
         if (created)
         {
-            dbContext.GoldCatalogEntries.Add(entry);
+            knowledgeRepository.AddGoldCatalogEntry(entry);
         }
 
-        dbContext.EntryHistories.Add(new EntryHistory
-        {
-            Id = Guid.NewGuid(),
-            EntryId = entry.Id,
-            Action = created ? EntryHistoryActions.Published : EntryHistoryActions.Republished,
-            ChangedBy = actor,
-            ChangedAtUtc = now,
-            Summary = created
-                ? "Initial publish from silver draft."
-                : "Published entry refreshed from silver draft.",
-            UsedLlm = false
-        });
+        historyRepository.AddEntryHistory(ToEntryHistory(
+            entry.Id,
+            GoldEntryHistoryFactory.CreatePublished(actor, now, created)));
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var historyCount = await dbContext.EntryHistories
-            .AsNoTracking()
-            .CountAsync(history => history.EntryId == entry.Id, cancellationToken);
+        var historyCount = (await historyRepository.GetEntryHistoriesAsync(entry.Id, cancellationToken)).Count;
 
         return new GoldPublishResult(
             ToDetailResponse(
@@ -213,9 +218,7 @@ public sealed class GoldCatalogService(
             return null;
         }
 
-        var historyCount = await dbContext.EntryHistories
-            .AsNoTracking()
-            .CountAsync(history => history.EntryId == entryId, cancellationToken);
+        var historyCount = (await historyRepository.GetEntryHistoriesAsync(entryId, cancellationToken)).Count;
 
         return ToDetailResponse(entry.Entry, historyCount, entry.AuthenticationType);
     }
@@ -226,9 +229,7 @@ public sealed class GoldCatalogService(
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var exists = await dbContext.GoldCatalogEntries
-            .AsNoTracking()
-            .AnyAsync(entry => entry.Id == entryId, cancellationToken);
+        var exists = await knowledgeRepository.GetGoldCatalogEntryAsync(entryId, cancellationToken) is not null;
 
         if (!exists)
         {
@@ -238,11 +239,14 @@ public sealed class GoldCatalogService(
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var query = dbContext.EntryHistories
-            .AsNoTracking()
-            .Where(history => history.EntryId == entryId);
-        var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
+        var histories = await historyRepository.GetEntryHistoriesAsync(entryId, cancellationToken);
+
+        if (histories is null)
+        {
+            throw new InvalidOperationException("History repository returned null entry histories collection.");
+        }
+
+        var items = histories
             .OrderByDescending(history => history.ChangedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -253,7 +257,9 @@ public sealed class GoldCatalogService(
                 history.ChangedAtUtc,
                 history.Summary,
                 history.UsedLlm))
-            .ToListAsync(cancellationToken);
+            .ToList();
+
+        var totalCount = histories.Count;
 
         return new EntryHistoryPageResponse(items, page, pageSize, totalCount);
     }
@@ -315,6 +321,20 @@ public sealed class GoldCatalogService(
             .ToList();
     }
 
+    private static EntryHistory ToEntryHistory(Guid entryId, GoldEntryHistoryDraft draft)
+    {
+        return new EntryHistory
+        {
+            Id = Guid.NewGuid(),
+            EntryId = entryId,
+            Action = draft.Action,
+            ChangedBy = draft.ChangedBy,
+            ChangedAtUtc = draft.ChangedAtUtc,
+            Summary = draft.Summary,
+            UsedLlm = draft.UsedLlm
+        };
+    }
+
     private static string NormalizeActor(string? value)
     {
         return string.IsNullOrWhiteSpace(value)
@@ -325,18 +345,12 @@ public sealed class GoldCatalogService(
     private async Task<List<GoldCatalogProjection>> LoadCatalogProjectionsAsync(
         CancellationToken cancellationToken)
     {
-        var rows = await (
-            from entry in dbContext.GoldCatalogEntries.AsNoTracking()
-            join silver in dbContext.SilverServerDrafts.AsNoTracking()
-                on entry.SilverServerDraftId equals silver.Id
-            join bronze in dbContext.BronzeSources.AsNoTracking()
-                on silver.BronzeSourceId equals bronze.Id
-            select new
-            {
-                Entry = entry,
-                bronze.RawContent
-            })
-            .ToListAsync(cancellationToken);
+        var rows = await knowledgeRepository.GetGoldCatalogProjectionRowsAsync(cancellationToken);
+
+        if (rows is null)
+        {
+            throw new InvalidOperationException("Knowledge repository returned null gold catalog projections collection.");
+        }
 
         return rows
             .Select(row => new GoldCatalogProjection(

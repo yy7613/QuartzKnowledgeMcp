@@ -1,18 +1,21 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Domain.Ports;
 using QuartzKnowledgeMcp.Api.Persistence;
 
 namespace QuartzKnowledgeMcp.Api.Silver;
 
 public sealed class SilverDraftService(
-    McpKnowledgeDbContext dbContext,
-    RuleBasedSilverNormalizer normalizer,
+    IKnowledgeRepository knowledgeRepository,
+    IUnitOfWork unitOfWork,
+    IOrganizationAgent organizationAgent,
     TimeProvider timeProvider)
 {
     public async Task<SilverOrganizeResult> OrganizeAsync(
         Guid bronzeId,
         string? mode,
+        bool useLlm = false,
+        bool preview = false,
         CancellationToken cancellationToken = default)
     {
         if (!SilverOrganizeModes.IsSupported(mode))
@@ -26,18 +29,20 @@ public sealed class SilverDraftService(
             });
         }
 
-        var bronzeSource = await dbContext.BronzeSources
-            .FirstOrDefaultAsync(source => source.Id == bronzeId, cancellationToken);
+        var bronzeSource = await knowledgeRepository.GetBronzeSourceAsync(bronzeId, cancellationToken);
 
         if (bronzeSource is null)
         {
             throw new BronzeSourceNotFoundException(bronzeId);
         }
 
-        SilverServerDraftContent normalizedDraft;
+        OrganizationAgentResult organizationResult;
         try
         {
-            normalizedDraft = normalizer.Normalize(bronzeSource);
+            organizationResult = await organizationAgent.OrganizeAsync(
+                bronzeSource,
+                new OrganizationAgentRequest(useLlm),
+                cancellationToken);
         }
         catch (SilverNormalizationException)
         {
@@ -50,45 +55,51 @@ public sealed class SilverDraftService(
                 exception);
         }
 
-        var existingDraft = await dbContext.SilverServerDrafts
-            .Include(draft => draft.ToolDrafts)
-            .FirstOrDefaultAsync(draft => draft.BronzeSourceId == bronzeId, cancellationToken);
+        var normalizedDraft = organizationResult.Draft;
 
-        var draft = existingDraft ?? new SilverServerDraft
+        var existingDraft = await knowledgeRepository.GetSilverDraftByBronzeSourceIdAsync(
+            bronzeId,
+            includeToolDrafts: true,
+            cancellationToken);
+
+        var organizedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+
+        if (preview)
         {
-            Id = Guid.NewGuid(),
-            BronzeSourceId = bronzeId
-        };
+            var previewDraft = BuildDraft(
+                existingDraft?.Id ?? Guid.NewGuid(),
+                bronzeId,
+                normalizedDraft,
+                organizedAtUtc);
 
-        draft.Name = normalizedDraft.Name;
-        draft.Summary = normalizedDraft.Summary;
-        draft.TagCandidatesJson = SerializeTags(normalizedDraft.TagCandidates);
-        draft.OrganizedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+            return new SilverOrganizeResult(
+                previewDraft,
+                existingDraft is null,
+                organizationResult.UsedLlm,
+                Preview: true);
+        }
 
-        draft.ToolDrafts.Clear();
-        foreach (var (toolDraft, index) in normalizedDraft.ToolDrafts
-            .DistinctBy(tool => tool.Name, StringComparer.OrdinalIgnoreCase)
-            .Select((tool, index) => (tool, index)))
+        var draft = existingDraft ?? BuildDraft(
+            Guid.NewGuid(),
+            bronzeId,
+            normalizedDraft,
+            organizedAtUtc);
+
+        if (existingDraft is not null)
         {
-            draft.ToolDrafts.Add(new SilverToolDraft
-            {
-                Id = Guid.NewGuid(),
-                Name = toolDraft.Name,
-                Description = toolDraft.Description,
-                Position = index
-            });
+            ApplyDraft(draft, normalizedDraft, organizedAtUtc);
         }
 
         if (existingDraft is null)
         {
-            dbContext.SilverServerDrafts.Add(draft);
+            knowledgeRepository.AddSilverDraft(draft);
         }
 
         bronzeSource.Status = BronzeSourceStatuses.Organized;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new SilverOrganizeResult(draft, existingDraft is null);
+        return new SilverOrganizeResult(draft, existingDraft is null, organizationResult.UsedLlm);
     }
 
     public async Task<SilverServerDraftListResponse> ListAsync(
@@ -99,23 +110,31 @@ public sealed class SilverDraftService(
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var query = dbContext.SilverServerDrafts.AsNoTracking();
-        var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
+        var drafts = await knowledgeRepository.GetSilverDraftsAsync(
+            includeToolDrafts: true,
+            cancellationToken);
+
+        if (drafts is null)
+        {
+            throw new InvalidOperationException("Knowledge repository returned null silver drafts collection.");
+        }
+
+        var items = drafts
             .OrderByDescending(draft => draft.OrganizedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(draft => new
-            {
-                draft.Id,
-                draft.BronzeSourceId,
-                draft.Name,
-                draft.Summary,
-                draft.TagCandidatesJson,
-                ToolCount = draft.ToolDrafts.Count,
-                draft.OrganizedAtUtc
-            })
-            .ToListAsync(cancellationToken);
+            .ToList();
+
+        var totalDrafts = await knowledgeRepository.GetSilverDraftsAsync(
+            includeToolDrafts: false,
+            cancellationToken);
+
+        if (totalDrafts is null)
+        {
+            throw new InvalidOperationException("Knowledge repository returned null silver drafts collection.");
+        }
+
+        var totalCount = totalDrafts.Count;
 
         return new SilverServerDraftListResponse(
             items.Select(item => new SilverServerDraftResponse(
@@ -124,7 +143,7 @@ public sealed class SilverDraftService(
                 item.Name,
                 item.Summary,
                 DeserializeTags(item.TagCandidatesJson),
-                item.ToolCount,
+                item.ToolDrafts.Count,
                 item.OrganizedAtUtc))
             .ToList(),
             page,
@@ -136,17 +155,20 @@ public sealed class SilverDraftService(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var draft = await dbContext.SilverServerDrafts
-            .AsNoTracking()
-            .Include(serverDraft => serverDraft.ToolDrafts)
-            .FirstOrDefaultAsync(serverDraft => serverDraft.Id == id, cancellationToken);
+        var draft = await knowledgeRepository.GetSilverDraftAsync(
+            id,
+            includeToolDrafts: true,
+            cancellationToken);
 
         return draft is null
             ? null
             : ToDetailResponse(draft);
     }
 
-    public static SilverServerDraftDetailResponse ToDetailResponse(SilverServerDraft draft)
+    public static SilverServerDraftDetailResponse ToDetailResponse(
+        SilverServerDraft draft,
+        bool usedLlm = false,
+        bool preview = false)
     {
         return new SilverServerDraftDetailResponse(
             draft.Id,
@@ -161,7 +183,76 @@ public sealed class SilverDraftService(
                     toolDraft.Name,
                     toolDraft.Description))
                 .ToList(),
-            draft.OrganizedAtUtc);
+            draft.OrganizedAtUtc,
+            usedLlm,
+            preview);
+    }
+
+    private SilverServerDraft BuildDraft(
+        Guid draftId,
+        Guid bronzeId,
+        SilverServerDraftContent normalizedDraft,
+        DateTime organizedAtUtc)
+    {
+        var draft = new SilverServerDraft
+        {
+            Id = draftId,
+            BronzeSourceId = bronzeId
+        };
+
+        ApplyDraft(draft, normalizedDraft, organizedAtUtc);
+        return draft;
+    }
+
+    private void ApplyDraft(
+        SilverServerDraft draft,
+        SilverServerDraftContent normalizedDraft,
+        DateTime organizedAtUtc)
+    {
+        draft.Name = normalizedDraft.Name;
+        draft.Summary = normalizedDraft.Summary;
+        draft.TagCandidatesJson = SerializeTags(normalizedDraft.TagCandidates);
+        draft.OrganizedAtUtc = organizedAtUtc;
+
+        var normalizedToolDrafts = normalizedDraft.ToolDrafts
+            .DistinctBy(tool => tool.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var existingToolDrafts = draft.ToolDrafts
+            .OrderBy(toolDraft => toolDraft.Position)
+            .ToList();
+        var sharedCount = Math.Min(existingToolDrafts.Count, normalizedToolDrafts.Count);
+
+        for (var index = 0; index < sharedCount; index++)
+        {
+            existingToolDrafts[index].Name = normalizedToolDrafts[index].Name;
+            existingToolDrafts[index].Description = normalizedToolDrafts[index].Description;
+            existingToolDrafts[index].Position = index;
+        }
+
+        if (existingToolDrafts.Count > normalizedToolDrafts.Count)
+        {
+            var extraToolDrafts = existingToolDrafts
+                .Skip(normalizedToolDrafts.Count)
+                .ToList();
+
+            knowledgeRepository.RemoveSilverToolDrafts(extraToolDrafts);
+            foreach (var extraToolDraft in extraToolDrafts)
+            {
+                draft.ToolDrafts.Remove(extraToolDraft);
+            }
+        }
+
+        for (var index = sharedCount; index < normalizedToolDrafts.Count; index++)
+        {
+            var toolDraft = normalizedToolDrafts[index];
+            draft.ToolDrafts.Add(new SilverToolDraft
+            {
+                Id = Guid.NewGuid(),
+                Name = toolDraft.Name,
+                Description = toolDraft.Description,
+                Position = index
+            });
+        }
     }
 
     private static string SerializeTags(IReadOnlyList<string> tags)

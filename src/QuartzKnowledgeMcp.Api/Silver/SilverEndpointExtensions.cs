@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Gold;
 
 namespace QuartzKnowledgeMcp.Api.Silver;
@@ -11,7 +12,7 @@ public static class SilverEndpointExtensions
         var group = endpoints.MapGroup("/api/silver/server-drafts");
 
         group.MapGet("", async (
-            SilverDraftService service,
+            SilverDraftApplicationService service,
             int? page,
             int? pageSize,
             CancellationToken cancellationToken) =>
@@ -26,7 +27,7 @@ public static class SilverEndpointExtensions
 
         group.MapGet("/{draftId:guid}", async (
             Guid draftId,
-            SilverDraftService service,
+            SilverDraftApplicationService service,
             CancellationToken cancellationToken) =>
         {
             var response = await service.GetDetailAsync(draftId, cancellationToken);
@@ -39,14 +40,14 @@ public static class SilverEndpointExtensions
         group.MapPost("/{silverId:guid}:publish", async (
             Guid silverId,
             PublishSilverDraftRequest? request,
-            GoldCatalogService service,
+            CatalogCurationApplicationService service,
             CancellationToken cancellationToken) =>
         {
             try
             {
                 var result = await service.PublishAsync(
                     silverId,
-                    request?.PublishedBy,
+                    request,
                     cancellationToken);
 
                 return result.Created

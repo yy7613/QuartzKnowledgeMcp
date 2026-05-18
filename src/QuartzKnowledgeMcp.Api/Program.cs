@@ -1,8 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using ModelContextProtocol.Server;
+using QuartzKnowledgeMcp.Api.Application;
+using QuartzKnowledgeMcp.Api.Capabilities;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Domain.Ports;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Health;
+using QuartzKnowledgeMcp.Api.Mcp;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Search;
 using QuartzKnowledgeMcp.Api.Silver;
@@ -23,10 +28,26 @@ builder.Services.AddDbContext<McpKnowledgeDbContext>(options =>
     options.UseSqlite(connectionString);
 });
 builder.Services.AddScoped<BronzeIngestionService>();
+builder.Services.AddScoped<IKnowledgeRepository, SqliteKnowledgeRepository>();
+builder.Services.AddScoped<IHistoryRepository, SqliteHistoryRepository>();
+builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<RuleBasedSilverNormalizer>();
+builder.Services.AddScoped<IOrganizationAgent, RuleBasedOrganizationAgent>();
 builder.Services.AddScoped<SilverDraftService>();
 builder.Services.AddScoped<GoldCatalogService>();
+builder.Services.AddScoped<SilverDraftApplicationService>();
+builder.Services.AddScoped<CatalogCurationApplicationService>();
 builder.Services.AddScoped<CatalogSearchService>();
+builder.Services.AddScoped<SystemCapabilitiesService>();
+builder.Services.AddMcpServer()
+    .WithHttpTransport(options =>
+    {
+        options.Stateless = true;
+    })
+    .WithTools<HealthMcpTools>()
+    .WithTools<BronzeMcpTools>()
+    .WithTools<CatalogMcpTools>()
+    .WithTools<SearchMcpTools>();
 
 var app = builder.Build();
 
@@ -44,6 +65,8 @@ app.MapBronzeEndpoints();
 app.MapSilverEndpoints();
 app.MapGoldEndpoints();
 app.MapSearchEndpoints();
+app.MapSystemEndpoints();
+app.MapMcp("/mcp");
 
 app.Run();
 
