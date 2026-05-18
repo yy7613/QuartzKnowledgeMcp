@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuartzKnowledgeMcp.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2f2bdb88b8d1fe7f7ab5189f74d3bd0fed38534")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0d498af6251c50d8a5007dea6553025f57fc5c42")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuartzKnowledgeMcp.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuartzKnowledgeMcp.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
