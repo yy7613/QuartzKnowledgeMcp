@@ -3,6 +3,7 @@ namespace QuartzKnowledgeMcp.Api.Bronze;
 public static class BronzeSourceStatuses
 {
     public const string Imported = "imported";
+    public const string Organized = "organized";
 }
 
 public static class BronzeSourceTypes

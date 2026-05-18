@@ -6,6 +6,9 @@ public sealed record CreateBronzeSourceRequest(
     string? RawContent,
     string? ImportedBy);
 
+public sealed record OrganizeBronzeSourceRequest(
+    string? Mode);
+
 public sealed record BronzeSourceResponse(
     Guid Id,
     string SourceType,

@@ -13,8 +13,8 @@
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|
 | Phase 01 | completed | 70% | 70.00% | yes | yes | yes | yes | `GET /health` verified with HTTP 200. |
 | Phase 02 | completed | 70% | 95.94% | yes | yes | yes | yes | Bronze registration/list/detail verified with SQLite and HTTP API. |
-| Phase 03 | not-started | 70% | TBD | no | no | no | no | |
-| Phase 04 | not-started | 70% | TBD | no | no | no | no | |
+| Phase 03 | completed | 70% | 77.40% | yes | yes | yes | yes | Silver organize/list/detail verified with SQLite, unit tests, and HTTP smoke. |
+| Phase 04 | completed | 70% | 79.85% | yes | yes | yes | yes | Gold publish/detail and history verified with SQLite, unit tests, and HTTP smoke. |
 | Phase 05 | not-started | 75% | TBD | no | no | no | no | |
 | Phase 06 | not-started | 75% | TBD | no | no | no | no | |
 | Phase 07 | not-started | 80% | TBD | no | no | no | no | |

@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Health;
 using QuartzKnowledgeMcp.Api.Persistence;
+using QuartzKnowledgeMcp.Api.Silver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,9 @@ builder.Services.AddDbContext<McpKnowledgeDbContext>(options =>
     options.UseSqlite(connectionString);
 });
 builder.Services.AddScoped<BronzeIngestionService>();
+builder.Services.AddScoped<RuleBasedSilverNormalizer>();
+builder.Services.AddScoped<SilverDraftService>();
+builder.Services.AddScoped<GoldCatalogService>();
 
 var app = builder.Build();
 
@@ -34,6 +39,8 @@ app.MapGet("/health", (IHealthStatusService healthStatusService) =>
     .WithName("GetHealth");
 
 app.MapBronzeEndpoints();
+app.MapSilverEndpoints();
+app.MapGoldEndpoints();
 
 app.Run();
 

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using QuartzKnowledgeMcp.Api.Silver;
 
 namespace QuartzKnowledgeMcp.Api.Bronze;
 
@@ -57,6 +58,42 @@ public static class BronzeEndpointExtensions
                 : Results.Ok(response);
         })
         .WithName("GetBronzeSource");
+
+        group.MapPost("/{bronzeId:guid}:organize", async (
+            Guid bronzeId,
+            OrganizeBronzeSourceRequest? request,
+            SilverDraftService service,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await service.OrganizeAsync(
+                    bronzeId,
+                    request?.Mode,
+                    cancellationToken);
+                var response = SilverDraftService.ToDetailResponse(result.Draft);
+
+                return result.Created
+                    ? Results.Created($"/api/silver/server-drafts/{response.Id}", response)
+                    : Results.Ok(response);
+            }
+            catch (SilverValidationException exception)
+            {
+                return Results.ValidationProblem(exception.Errors);
+            }
+            catch (BronzeSourceNotFoundException)
+            {
+                return Results.NotFound();
+            }
+            catch (SilverNormalizationException exception)
+            {
+                return Results.UnprocessableEntity(new SilverOrganizeErrorResponse(
+                    "silver_normalization_failed",
+                    exception.Message,
+                    bronzeId));
+            }
+        })
+        .WithName("OrganizeBronzeSource");
 
         return endpoints;
     }
