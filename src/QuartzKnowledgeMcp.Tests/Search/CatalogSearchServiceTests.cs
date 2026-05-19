@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Search;
@@ -37,6 +38,28 @@ public class CatalogSearchServiceTests
 
         var service = new CatalogSearchService(dbContext);
         var result = await service.SearchAsync(null, ["azure", "search"], null, null, null);
+
+        Assert.Single(result.Items);
+        Assert.Equal("Azure Search", result.Items[0].DisplayName);
+    }
+
+    [Fact]
+    public async Task QueryAsync_ComposesMultipleConditions_FromRequestDto()
+    {
+        await using var connection = await OpenConnectionAsync();
+        await using var dbContext = await CreateDbContextAsync(connection);
+        await SeedPublishedEntryAsync(dbContext, "query-match", "Azure Search", "Search GitHub registry entries.", "OAuth 2.0", ["VS Code"], new DateTimeOffset(2026, 5, 18, 10, 0, 0, TimeSpan.Zero), includeAzureKeyword: true);
+        await SeedPublishedEntryAsync(dbContext, "query-miss", "Azure Browser", "Browse GitHub registry entries.", "API key", ["Claude Desktop"], new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero), includeSearchKeyword: false, includeAzureKeyword: true);
+
+        var service = new CatalogSearchService(dbContext);
+        var result = await service.QueryAsync(new SearchQueryRequest(
+            Query: "search",
+            Tags: ["azure"],
+            AuthType: "oauth",
+            Client: "VS Code",
+            Sort: "relevance",
+            Page: 1,
+            PageSize: 10));
 
         Assert.Single(result.Items);
         Assert.Equal("Azure Search", result.Items[0].DisplayName);
@@ -143,6 +166,7 @@ public class CatalogSearchServiceTests
             KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
             KnowledgeStoreTestFixture.CreateHistoryRepository(dbContext),
             KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
+            new NoOpSemanticIndexer(),
             new FixedTimeProvider(timestamp));
 
         var summaryKeywords = new List<string>();

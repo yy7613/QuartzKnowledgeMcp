@@ -10,6 +10,7 @@ public sealed class GoldCatalogService(
     IKnowledgeRepository knowledgeRepository,
     IHistoryRepository historyRepository,
     IUnitOfWork unitOfWork,
+    ISemanticIndexer semanticIndexer,
     TimeProvider timeProvider)
 {
     public async Task<GoldCatalogEntryDetailResponse> UpdateAsync(
@@ -57,6 +58,7 @@ public sealed class GoldCatalogService(
             GoldEntryHistoryFactory.CreateCatalogUpdated(actor, now)));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await semanticIndexer.IndexAsync(ToSemanticCatalogDocument(entry), cancellationToken);
 
         return (await GetDetailAsync(entry.Id, cancellationToken))!;
     }
@@ -97,6 +99,7 @@ public sealed class GoldCatalogService(
             GoldEntryHistoryFactory.CreateTagsReplaced(actor, now, tagSet.Values.Count)));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await semanticIndexer.IndexAsync(ToSemanticCatalogDocument(entry), cancellationToken);
 
         return new GoldTagUpdateResponse(entry.Id, tagSet.Values, now, actor);
     }
@@ -164,6 +167,7 @@ public sealed class GoldCatalogService(
             GoldEntryHistoryFactory.CreatePublished(actor, now, created)));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await semanticIndexer.IndexAsync(ToSemanticCatalogDocument(entry), cancellationToken);
 
         var historyCount = (await historyRepository.GetEntryHistoriesAsync(entry.Id, cancellationToken)).Count;
 
@@ -319,6 +323,19 @@ public sealed class GoldCatalogService(
         return references
             .Select(reference => new GoldReferenceResponse("reference", reference))
             .ToList();
+    }
+
+    private static SemanticCatalogDocument ToSemanticCatalogDocument(GoldCatalogEntry entry)
+    {
+        return new SemanticCatalogDocument(
+            entry.Id,
+            entry.DisplayName,
+            entry.Overview,
+            GoldCatalogJson.DeserializeList<string>(entry.TagsJson),
+            GoldCatalogJson.DeserializeList<GoldToolSummaryResponse>(entry.ToolSummariesJson)
+                .Select(tool => tool.Name)
+                .ToList(),
+            GoldCatalogJson.DeserializeList<string>(entry.SupportedClientsJson));
     }
 
     private static EntryHistory ToEntryHistory(Guid entryId, GoldEntryHistoryDraft draft)

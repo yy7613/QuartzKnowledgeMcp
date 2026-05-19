@@ -61,6 +61,41 @@ public class SearchApiTests(ApiTestFactory factory)
     }
 
     [Fact]
+    public async Task SearchQueryPost_FiltersStructuredResults()
+    {
+        await factory.ResetDatabaseAsync();
+        using var client = factory.CreateClient();
+
+        await client.CreatePublishedEntryAsync(
+            "search-post-one",
+            "Registry Search",
+            "Search registry entries from GitHub.",
+            "OAuth 2.0",
+            "VS Code");
+        await client.CreatePublishedEntryAsync(
+            "search-post-two",
+            "Slack Search",
+            "Search Slack archives.",
+            "No authentication required",
+            "Claude Desktop");
+
+        var response = await client.PostAsJsonAsync("/api/search/query", new
+        {
+            query = "search",
+            tags = new[] { "github" },
+            authType = "oauth",
+            client = "VS Code",
+            sort = "relevance"
+        });
+        var payload = await response.Content.ReadFromJsonAsync<SearchPayload>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(payload);
+        Assert.Single(payload.Items);
+        Assert.Equal("Registry Search", payload.Items[0].DisplayName);
+    }
+
+    [Fact]
     public async Task SearchSuggestions_ReturnExpectedScopedCandidates()
     {
         await factory.ResetDatabaseAsync();
@@ -114,6 +149,39 @@ public class SearchApiTests(ApiTestFactory factory)
         Assert.Contains(response.Clients, item => item.Value == "VS Code" && item.Count == 1);
     }
 
+    [Fact]
+    public async Task RelatedEntries_ReturnStructuredMatches_WhenEmbeddingIsDisabled()
+    {
+        await factory.ResetDatabaseAsync();
+        using var client = factory.CreateClient();
+
+        var source = await client.CreatePublishedEntryAsync(
+            "related-source",
+            "Registry Search",
+            "Search registry entries from GitHub.",
+            "OAuth 2.0",
+            "VS Code");
+        await client.CreatePublishedEntryAsync(
+            "related-match",
+            "Registry Sync",
+            "Sync registry entries from GitHub.",
+            "OAuth 2.0",
+            "VS Code");
+        await client.CreatePublishedEntryAsync(
+            "related-miss",
+            "Slack Helper",
+            "Slack workflow helper.",
+            "API key",
+            "Claude Desktop");
+
+        var response = await client.GetFromJsonAsync<RelatedEntriesPayload>($"/api/gold/catalog/{source.GoldId}/related?limit=5");
+
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Items);
+        Assert.Equal("Registry Sync", response.Items[0].DisplayName);
+        Assert.Contains("github", response.Items[0].SharedTags);
+    }
+
     private sealed record GoldListPayload(IReadOnlyList<GoldListItemPayload> Items, int Page, int PageSize, int TotalCount);
     private sealed record GoldListItemPayload(Guid Id, string DisplayName, string Overview, IReadOnlyList<string> Tags, string AuthenticationType, IReadOnlyList<string> SupportedClients, DateTime UpdatedAtUtc);
     private sealed record SearchPayload(IReadOnlyList<SearchItemPayload> Items, int Page, int PageSize, int TotalCount);
@@ -122,4 +190,6 @@ public class SearchApiTests(ApiTestFactory factory)
     private sealed record SearchSuggestionItemPayload(string Value, string Type, decimal Score);
     private sealed record SearchFacetsPayload(IReadOnlyList<SearchFacetItemPayload> Tags, IReadOnlyList<SearchFacetItemPayload> AuthTypes, IReadOnlyList<SearchFacetItemPayload> Clients);
     private sealed record SearchFacetItemPayload(string Value, int Count);
+    private sealed record RelatedEntriesPayload(IReadOnlyList<RelatedEntryItemPayload> Items);
+    private sealed record RelatedEntryItemPayload(Guid Id, string DisplayName, string Overview, IReadOnlyList<string> SharedTags, IReadOnlyList<string> SharedTools, IReadOnlyList<string> SharedClients, decimal Score);
 }

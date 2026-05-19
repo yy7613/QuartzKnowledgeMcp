@@ -1,23 +1,23 @@
+using Microsoft.Extensions.Options;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Domain.Ports;
+using QuartzKnowledgeMcp.Api.Silver;
 
 namespace QuartzKnowledgeMcp.Api.Capabilities;
 
 public sealed class SystemCapabilitiesService(
-    IConfiguration configuration,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IOptions<FoundryOrganizationOptions> foundryOptions,
+    IOptions<EmbeddingOptions> embeddingOptions)
 {
     public SystemCapabilitiesResponse GetCapabilities()
     {
-        var llmProvider = FindConfiguredValue("Llm:Provider", "Organization:Llm:Provider") ?? "none";
-        var llmEnabled = FindConfiguredFlag("Llm:Enabled", "Organization:Llm:Enabled")
-            ?? !IsDisabledProvider(llmProvider);
-        var llmModel = llmEnabled
-            ? FindConfiguredValue("Llm:Model", "Organization:Llm:Model") ?? "configured-at-runtime"
-            : "none";
+        var llmEnabled = foundryOptions.Value.IsConfigured;
+        var llmProvider = llmEnabled ? foundryOptions.Value.EffectiveProvider : "none";
+        var llmModel = llmEnabled ? foundryOptions.Value.EffectiveModel : "none";
 
-        var embeddingProvider = FindConfiguredValue("Embedding:Provider", "Search:Embedding:Provider") ?? "none";
-        var embeddingEnabled = FindConfiguredFlag("Embedding:Enabled", "Search:Embedding:Enabled")
-            ?? !IsDisabledProvider(embeddingProvider);
+        var embeddingEnabled = embeddingOptions.Value.IsConfigured;
+        var embeddingProvider = embeddingEnabled ? embeddingOptions.Value.EffectiveProvider : "none";
 
         return new SystemCapabilitiesResponse(
             new KnowledgeStoreCapabilities(NormalizeKnowledgeStoreProvider(unitOfWork.ProviderName), Replaceable: true),
@@ -27,36 +27,8 @@ public sealed class SystemCapabilitiesService(
                 SupportsStructuredSearch: true,
                 SupportsSuggestions: true,
                 SupportsFacets: true,
-                SupportsRelatedEntries: false,
+                SupportsRelatedEntries: true,
                 SupportsSemanticSearch: embeddingEnabled));
-    }
-
-    private string? FindConfiguredValue(params string[] keys)
-    {
-        foreach (var key in keys)
-        {
-            var value = configuration[key];
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                return value.Trim();
-            }
-        }
-
-        return null;
-    }
-
-    private bool? FindConfiguredFlag(params string[] keys)
-    {
-        foreach (var key in keys)
-        {
-            var value = configuration[key];
-            if (bool.TryParse(value, out var parsed))
-            {
-                return parsed;
-            }
-        }
-
-        return null;
     }
 
     private static string NormalizeKnowledgeStoreProvider(string? providerName)
@@ -84,12 +56,5 @@ public sealed class SystemCapabilitiesService(
         return string.IsNullOrWhiteSpace(provider)
             ? "none"
             : provider.Trim();
-    }
-
-    private static bool IsDisabledProvider(string provider)
-    {
-        return string.IsNullOrWhiteSpace(provider)
-            || string.Equals(provider, "none", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(provider, "disabled", StringComparison.OrdinalIgnoreCase);
     }
 }

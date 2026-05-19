@@ -33,6 +33,16 @@ public static class SearchEndpointExtensions
         })
         .WithName("SearchCatalog");
 
+        group.MapPost("/query", async (
+            SearchQueryRequest request,
+            CatalogSearchService service,
+            CancellationToken cancellationToken) =>
+        {
+            var response = await service.QueryAsync(request, cancellationToken);
+            return Results.Ok(response);
+        })
+        .WithName("QuerySearchCatalog");
+
         group.MapGet("/suggestions", async (
             CatalogSearchService service,
             string? q,

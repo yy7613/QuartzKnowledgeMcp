@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using QuartzKnowledgeMcp.Api.Application;
+using QuartzKnowledgeMcp.Api.Search;
 
 namespace QuartzKnowledgeMcp.Api.Gold;
 
@@ -103,6 +104,19 @@ public static class GoldEndpointExtensions
                 : Results.Ok(response);
         })
         .WithName("GetGoldCatalogEntryHistory");
+
+        group.MapGet("/{entryId:guid}/related", async (
+            Guid entryId,
+            CatalogRelationService service,
+            int? limit,
+            CancellationToken cancellationToken) =>
+        {
+            var response = await service.GetRelatedAsync(entryId, limit ?? 5, cancellationToken);
+            return response is null
+                ? Results.NotFound()
+                : Results.Ok(response);
+        })
+        .WithName("GetRelatedGoldCatalogEntries");
 
         return endpoints;
     }

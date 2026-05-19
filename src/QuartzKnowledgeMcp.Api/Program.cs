@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ModelContextProtocol.Server;
 using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Capabilities;
 using QuartzKnowledgeMcp.Api.Bronze;
 using QuartzKnowledgeMcp.Api.Domain.Ports;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Health;
 using QuartzKnowledgeMcp.Api.Mcp;
@@ -20,6 +22,10 @@ builder.Logging.AddConsole();
 builder.Services.AddSingleton(HealthCheckOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IHealthStatusService, HealthStatusService>();
+builder.Services.AddOptions<FoundryOrganizationOptions>()
+    .Bind(builder.Configuration.GetSection(FoundryOrganizationOptions.SectionName));
+builder.Services.AddOptions<EmbeddingOptions>()
+    .Bind(builder.Configuration.GetSection(EmbeddingOptions.SectionName));
 builder.Services.AddDbContext<McpKnowledgeDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("KnowledgeStore")
@@ -31,13 +37,20 @@ builder.Services.AddScoped<BronzeIngestionService>();
 builder.Services.AddScoped<IKnowledgeRepository, SqliteKnowledgeRepository>();
 builder.Services.AddScoped<IHistoryRepository, SqliteHistoryRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+builder.Services.AddScoped<IEmbeddingGenerator, NoOpEmbeddingGenerator>();
+builder.Services.AddScoped<ISemanticIndexer, NoOpSemanticIndexer>();
+builder.Services.AddScoped<IRelationProjector, StructuredRelationProjector>();
 builder.Services.AddScoped<RuleBasedSilverNormalizer>();
-builder.Services.AddScoped<IOrganizationAgent, RuleBasedOrganizationAgent>();
+builder.Services.AddScoped<RuleBasedOrganizationAgent>();
+builder.Services.AddScoped<IFoundryOrganizationClient, MafFoundryOrganizationClient>();
+builder.Services.AddScoped<MafFoundryOrganizationAgent>();
+builder.Services.AddScoped<IOrganizationAgent, OrganizationAgentSelector>();
 builder.Services.AddScoped<SilverDraftService>();
 builder.Services.AddScoped<GoldCatalogService>();
 builder.Services.AddScoped<SilverDraftApplicationService>();
 builder.Services.AddScoped<CatalogCurationApplicationService>();
 builder.Services.AddScoped<CatalogSearchService>();
+builder.Services.AddScoped<CatalogRelationService>();
 builder.Services.AddScoped<SystemCapabilitiesService>();
 builder.Services.AddMcpServer()
     .WithHttpTransport(options =>

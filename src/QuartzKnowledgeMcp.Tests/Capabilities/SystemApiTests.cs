@@ -25,7 +25,7 @@ public class SystemApiTests(ApiTestFactory factory)
         Assert.True(payload.Search.SupportsStructuredSearch);
         Assert.True(payload.Search.SupportsSuggestions);
         Assert.True(payload.Search.SupportsFacets);
-        Assert.False(payload.Search.SupportsRelatedEntries);
+        Assert.True(payload.Search.SupportsRelatedEntries);
         Assert.False(payload.Search.SupportsSemanticSearch);
     }
 

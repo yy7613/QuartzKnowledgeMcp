@@ -106,4 +106,63 @@ public class OperationalCatalogFlowApiTests(ApiTestFactory factory)
         Assert.NotNull(history);
         Assert.Equal(3, history.TotalCount);
     }
+
+    [Fact]
+    public async Task RepresentativeModes_PreserveRuleBasedFallback_AndEmbeddingDisabledSearch()
+    {
+        await factory.ResetDatabaseAsync();
+        using var client = factory.CreateClient();
+
+        var capabilities = await client.GetFromJsonAsync<SystemCapabilitiesPayload>("/api/system/capabilities");
+
+        Assert.NotNull(capabilities);
+        Assert.False(capabilities.Llm.Enabled);
+        Assert.False(capabilities.Embedding.Enabled);
+        Assert.True(capabilities.Search.SupportsRelatedEntries);
+        Assert.False(capabilities.Search.SupportsSemanticSearch);
+
+        var bronzeId = await client.CreateBronzeSourceAsync(
+            "https://github.com/example/regression-modes",
+            "# Regression Modes Server\n\nRegression Modes Server helps teams search workflow docs.\n\nAuthentication: OAuth 2.0\n\nSupported clients: VS Code\n\n## Tools\n- search-docs: Search docs\n- run-workflow: Run workflow automation");
+
+        var previewResponse = await client.PostAsJsonAsync($"/api/bronze/sources/{bronzeId}:organize", new
+        {
+            mode = "silver-draft",
+            useLlm = true,
+            preview = true
+        });
+        var preview = await previewResponse.Content.ReadFromJsonAsync<SilverPreviewPayload>();
+        var silverListAfterPreview = await client.GetFromJsonAsync<SilverListPayload>("/api/silver/server-drafts?page=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.OK, previewResponse.StatusCode);
+        Assert.NotNull(preview);
+        Assert.True(preview.Preview);
+        Assert.False(preview.UsedLlm);
+        Assert.NotNull(silverListAfterPreview);
+        Assert.Empty(silverListAfterPreview.Items);
+
+        var silverId = await client.OrganizeBronzeSourceAsync(bronzeId);
+        var goldId = await client.PublishSilverDraftAsync(silverId, "regression-publisher");
+        var searchResponse = await client.PostAsJsonAsync("/api/search/query", new
+        {
+            query = "workflow",
+            authType = "oauth",
+            client = "VS Code",
+            sort = "relevance"
+        });
+        var search = await searchResponse.Content.ReadFromJsonAsync<CatalogSearchResultResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, searchResponse.StatusCode);
+        Assert.NotNull(search);
+        Assert.Contains(search.Items, item => item.Id == goldId);
+    }
+
+    private sealed record SystemCapabilitiesPayload(LlmPayload Llm, EmbeddingPayload Embedding, SearchPayload Search);
+    private sealed record LlmPayload(bool Enabled, string Provider, string Model, bool Replaceable);
+    private sealed record EmbeddingPayload(bool Enabled, string Provider, bool Replaceable);
+    private sealed record SearchPayload(bool SupportsStructuredSearch, bool SupportsSuggestions, bool SupportsFacets, bool SupportsRelatedEntries, bool SupportsSemanticSearch);
+    private sealed record SilverPreviewPayload(Guid Id, Guid BronzeSourceId, string Name, string Summary, IReadOnlyList<string> TagCandidates, IReadOnlyList<SilverToolPayload> ToolDrafts, DateTime OrganizedAtUtc, bool UsedLlm, bool Preview);
+    private sealed record SilverToolPayload(Guid Id, string Name, string Description);
+    private sealed record SilverListPayload(IReadOnlyList<SilverListItemPayload> Items, int Page, int PageSize, int TotalCount);
+    private sealed record SilverListItemPayload(Guid Id, Guid BronzeSourceId, string Name, string Summary, IReadOnlyList<string> TagCandidates, int ToolCount, DateTime OrganizedAtUtc);
 }

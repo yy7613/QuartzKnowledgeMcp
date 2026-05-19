@@ -1,6 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Domain.Ports;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Silver;
@@ -16,7 +18,7 @@ public class GoldCatalogServiceTests
         await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
         await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
-        var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
+        var service = CreateService(dbContext, utcNow: new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
         var result = await service.UpdateAsync(
             published.EntryId,
@@ -41,7 +43,7 @@ public class GoldCatalogServiceTests
         await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
         await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
-        var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
+        var service = CreateService(dbContext, utcNow: new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
         var result = await service.UpdateAsync(
             published.EntryId,
@@ -58,6 +60,29 @@ public class GoldCatalogServiceTests
         Assert.Equal(2, histories.Count);
         Assert.Equal(EntryHistoryActions.CatalogUpdated, histories[^1].Action);
         Assert.Equal(2, result.HistoryCount);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_CallsSemanticIndexer_WhenCatalogUpdated()
+    {
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
+        var published = await CreatePublishedEntryAsync(dbContext);
+        var semanticIndexer = new TrackingSemanticIndexer();
+        var service = CreateService(dbContext, semanticIndexer: semanticIndexer);
+
+        await service.UpdateAsync(
+            published.EntryId,
+            new UpdateGoldCatalogEntryRequest(
+                "Updated overview",
+                "Updated setup",
+                ["https://example.dev/docs"],
+                ["VS Code"],
+                "editor"));
+
+        Assert.Single(semanticIndexer.Documents);
+        Assert.Equal(published.EntryId, semanticIndexer.Documents[0].EntryId);
+        Assert.Equal("Updated overview", semanticIndexer.Documents[0].Overview);
     }
 
     [Fact]
@@ -123,7 +148,7 @@ public class GoldCatalogServiceTests
         await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
         await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
-        var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
+        var service = CreateService(dbContext, utcNow: new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
 
         var result = await service.ReplaceTagsAsync(
             published.EntryId,
@@ -143,7 +168,7 @@ public class GoldCatalogServiceTests
         await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
         await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
         var published = await CreatePublishedEntryAsync(dbContext);
-        var service = CreateService(dbContext, new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
+        var service = CreateService(dbContext, utcNow: new DateTimeOffset(2026, 5, 18, 11, 0, 0, TimeSpan.Zero));
         await service.UpdateAsync(
             published.EntryId,
             new UpdateGoldCatalogEntryRequest(
@@ -206,6 +231,23 @@ public class GoldCatalogServiceTests
         Assert.Equal(EntryHistoryActions.Republished, histories[1].Action);
         Assert.Equal("second-publisher", storedEntry.UpdatedBy);
         Assert.Equal(2, second.Entry.HistoryCount);
+    }
+
+    [Fact]
+    public async Task PublishAsync_CallsSemanticIndexer_AfterPublishing()
+    {
+        await using var connection = await KnowledgeStoreTestFixture.OpenConnectionAsync();
+        await using var dbContext = await KnowledgeStoreTestFixture.CreateDbContextAsync(connection);
+        var silverDraft = await CreateSilverDraftAsync(dbContext);
+        var semanticIndexer = new TrackingSemanticIndexer();
+        var service = CreateService(dbContext, semanticIndexer: semanticIndexer);
+
+        var result = await service.PublishAsync(silverDraft.Id, "publisher");
+
+        Assert.Single(semanticIndexer.Documents);
+        Assert.Equal(result.Entry.Id, semanticIndexer.Documents[0].EntryId);
+        Assert.Equal(result.Entry.DisplayName, semanticIndexer.Documents[0].DisplayName);
+        Assert.NotEmpty(semanticIndexer.Documents[0].ToolNames);
     }
 
     [Fact]
@@ -273,12 +315,14 @@ public class GoldCatalogServiceTests
 
     private static GoldCatalogService CreateService(
         McpKnowledgeDbContext dbContext,
+        ISemanticIndexer? semanticIndexer = null,
         DateTimeOffset? utcNow = null)
     {
         return new GoldCatalogService(
             KnowledgeStoreTestFixture.CreateKnowledgeRepository(dbContext),
             KnowledgeStoreTestFixture.CreateHistoryRepository(dbContext),
             KnowledgeStoreTestFixture.CreateUnitOfWork(dbContext),
+            semanticIndexer ?? new NoOpSemanticIndexer(),
             new FixedTimeProvider(utcNow ?? new DateTimeOffset(2026, 5, 18, 10, 0, 0, TimeSpan.Zero)));
     }
 
@@ -292,6 +336,19 @@ public class GoldCatalogServiceTests
         public override DateTimeOffset GetUtcNow()
         {
             return utcNow;
+        }
+    }
+
+    private sealed class TrackingSemanticIndexer : ISemanticIndexer
+    {
+        public List<SemanticCatalogDocument> Documents { get; } = [];
+
+        public Task IndexAsync(
+            SemanticCatalogDocument document,
+            CancellationToken cancellationToken = default)
+        {
+            Documents.Add(document);
+            return Task.CompletedTask;
         }
     }
 }

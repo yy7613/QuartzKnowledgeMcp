@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Bronze;
 using QuartzKnowledgeMcp.Api.Domain.Ports;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Persistence;
 using QuartzKnowledgeMcp.Api.Silver;
@@ -62,12 +63,14 @@ internal static class KnowledgeStoreTestFixture
 
     public static GoldCatalogService CreateGoldService(
         McpKnowledgeDbContext dbContext,
+        ISemanticIndexer? semanticIndexer = null,
         DateTimeOffset? utcNow = null)
     {
         return new GoldCatalogService(
             CreateKnowledgeRepository(dbContext),
             CreateHistoryRepository(dbContext),
             CreateUnitOfWork(dbContext),
+            semanticIndexer ?? new NoOpSemanticIndexer(),
             new FixedTimeProvider(utcNow ?? new DateTimeOffset(2026, 5, 19, 10, 0, 0, TimeSpan.Zero)));
     }
 
@@ -78,9 +81,10 @@ internal static class KnowledgeStoreTestFixture
 
     public static CatalogCurationApplicationService CreateCatalogCurationApplicationService(
         McpKnowledgeDbContext dbContext,
+        ISemanticIndexer? semanticIndexer = null,
         DateTimeOffset? utcNow = null)
     {
-        return new CatalogCurationApplicationService(CreateGoldService(dbContext, utcNow));
+        return new CatalogCurationApplicationService(CreateGoldService(dbContext, semanticIndexer, utcNow));
     }
 
     public static async Task<SilverServerDraft> CreateSilverDraftAsync(McpKnowledgeDbContext dbContext)
@@ -113,7 +117,7 @@ internal static class KnowledgeStoreTestFixture
         DateTimeOffset? utcNow = null)
     {
         var silverDraft = await CreateSilverDraftAsync(dbContext);
-        var appService = CreateCatalogCurationApplicationService(dbContext, utcNow);
+        var appService = CreateCatalogCurationApplicationService(dbContext, utcNow: utcNow);
         var published = await appService.PublishAsync(silverDraft.Id, new PublishSilverDraftRequest("publisher"));
 
         return new PublishedEntrySeed(

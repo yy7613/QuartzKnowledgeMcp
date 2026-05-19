@@ -6,6 +6,21 @@ namespace QuartzKnowledgeMcp.Api.Search;
 
 public sealed class CatalogSearchService(McpKnowledgeDbContext dbContext)
 {
+    public Task<CatalogSearchResultResponse> QueryAsync(
+        SearchQueryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return SearchAsync(
+            request.Query,
+            request.Tags,
+            request.AuthType,
+            request.Client,
+            request.Sort,
+            request.Page ?? 1,
+            request.PageSize ?? 20,
+            cancellationToken);
+    }
+
     public async Task<CatalogSearchResultResponse> SearchAsync(
         string? keyword,
         IReadOnlyList<string>? tags,

@@ -33,7 +33,7 @@ public class CatalogCurationApplicationServiceTests
         var published = await KnowledgeStoreTestFixture.CreatePublishedEntryAsync(dbContext);
         var service = KnowledgeStoreTestFixture.CreateCatalogCurationApplicationService(
             dbContext,
-            new DateTimeOffset(2026, 5, 19, 11, 0, 0, TimeSpan.Zero));
+            utcNow: new DateTimeOffset(2026, 5, 19, 11, 0, 0, TimeSpan.Zero));
 
         var result = await service.UpdateAsync(
             published.EntryId,

@@ -85,11 +85,24 @@ async Task RunHttpFlowAsync(string baseUrl, JsonSerializerOptions jsonOptions)
     var search = await ReadJsonAsync(await client.GetAsync("/api/search?q=search&sort=relevance&page=1&pageSize=5"));
     PrintJson("search.query", search, jsonOptions);
 
+    var structuredSearch = await ReadJsonAsync(await client.PostAsJsonAsync("/api/search/query", new
+    {
+        query = "search",
+        tags = new[] { "search" },
+        sort = "relevance",
+        page = 1,
+        pageSize = 5
+    }));
+    PrintJson("search.query.post", structuredSearch, jsonOptions);
+
     var suggestions = await ReadJsonAsync(await client.GetAsync("/api/search/suggestions?q=search&limit=5"));
     PrintJson("search.suggestions", suggestions, jsonOptions);
 
     var facets = await ReadJsonAsync(await client.GetAsync("/api/search/facets?q=search"));
     PrintJson("search.facets", facets, jsonOptions);
+
+    var related = await ReadJsonAsync(await client.GetAsync($"/api/gold/catalog/{goldId}/related?limit=5"));
+    PrintJson("gold.related", related, jsonOptions);
 
     var updated = await ReadJsonAsync(await client.PutAsJsonAsync($"/api/gold/catalog/{goldId}", new
     {

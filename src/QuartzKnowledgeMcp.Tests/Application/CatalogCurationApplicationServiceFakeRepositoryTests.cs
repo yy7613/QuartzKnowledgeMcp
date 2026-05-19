@@ -1,5 +1,6 @@
 using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Bronze;
+using QuartzKnowledgeMcp.Api.Embedding;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Silver;
 using QuartzKnowledgeMcp.Tests.Infrastructure;
@@ -50,6 +51,7 @@ public class CatalogCurationApplicationServiceFakeRepositoryTests
             knowledgeRepository,
             historyRepository,
             unitOfWork,
+            new NoOpSemanticIndexer(),
             new FixedTimeProvider(new DateTimeOffset(2026, 5, 19, 12, 0, 0, TimeSpan.Zero))));
 
         var result = await service.PublishAsync(

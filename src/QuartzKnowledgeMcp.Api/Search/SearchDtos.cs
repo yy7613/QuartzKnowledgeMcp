@@ -1,5 +1,14 @@
 namespace QuartzKnowledgeMcp.Api.Search;
 
+public sealed record SearchQueryRequest(
+    string? Query,
+    IReadOnlyList<string>? Tags,
+    string? AuthType,
+    string? Client,
+    string? Sort,
+    int? Page,
+    int? PageSize);
+
 public sealed record CatalogSearchItemResponse(
     Guid Id,
     string DisplayName,
@@ -32,3 +41,15 @@ public sealed record SearchFacetResultResponse(
     IReadOnlyList<SearchFacetItemResponse> Tags,
     IReadOnlyList<SearchFacetItemResponse> AuthTypes,
     IReadOnlyList<SearchFacetItemResponse> Clients);
+
+public sealed record RelatedCatalogEntryResponse(
+    Guid Id,
+    string DisplayName,
+    string Overview,
+    IReadOnlyList<string> SharedTags,
+    IReadOnlyList<string> SharedTools,
+    IReadOnlyList<string> SharedClients,
+    decimal Score);
+
+public sealed record RelatedCatalogEntryResultResponse(
+    IReadOnlyList<RelatedCatalogEntryResponse> Items);

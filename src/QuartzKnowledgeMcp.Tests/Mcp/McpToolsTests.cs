@@ -66,7 +66,7 @@ public class McpToolsTests
             KnowledgeStoreTestFixture.CreateSilverApplicationService(dbContext),
             KnowledgeStoreTestFixture.CreateCatalogCurationApplicationService(
                 dbContext,
-                new DateTimeOffset(2026, 5, 19, 13, 0, 0, TimeSpan.Zero)));
+                utcNow: new DateTimeOffset(2026, 5, 19, 13, 0, 0, TimeSpan.Zero)));
 
         var silverList = await tool.list_silver_server_drafts();
         var silverDetail = await tool.get_silver_server_draft(silverDraft.Id);
