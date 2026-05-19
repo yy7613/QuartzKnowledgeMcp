@@ -26,6 +26,16 @@ Sample smoke を流す場合:
 dotnet run --project Sample/QuartzKnowledgeMcp.MockClient/QuartzKnowledgeMcp.MockClient.csproj -- --base-url http://localhost:5080
 ```
 
+## Workspace skills
+VS Code / Copilot 向けの workspace-scoped Skill は `.github/skills/` に配置します。
+
+- `quartz-knowledge-mcp`: ローカル MCP server の起動、seed、quality harness、MCP debugging
+- `quartz-knowledge-oss-publication-audit`: GitHub 公開前のドキュメント、生成物、secret placeholder、品質指標の監査
+- `quartz-knowledge-doc-snapshot-hygiene`: 現行ドキュメントと履歴文書の切り分け
+- `quartz-knowledge-release-validation`: build、test、coverage、git hygiene の最終検証
+
+repo 固有ワークフローを追加したら、関連 Skill の `description` と手順も更新してください。
+
 ## Test expectations
 最低限、変更範囲に応じて以下を実行してください。
 

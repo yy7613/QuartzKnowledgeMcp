@@ -76,16 +76,18 @@ GitHub Actions でも同じ基準を [.github/workflows/ci.yml](.github/workflow
 - [SECURITY.md](SECURITY.md): 脆弱性報告ポリシー
 - [implementation/phase-status.md](implementation/phase-status.md): coverage / regression 管理表
 
+`implementation` と `ideas` は履歴と検討経緯を残す補助文書です。現行の公開仕様、運用前提、品質基準は `docs` とこの README 群を優先してください。
+
 ## リポジトリ構成
 | Path | Role |
 |:--|:--|
 | `src` | API、本体実装、テスト |
 | `Sample` | runtime smoke と MCP quality harness |
 | `docs` | 仕様、設計、ADR |
-| `implementation` | phase 計画と完了記録 |
-| `ideas` | アイデアの原案 |
+| `implementation` | 段階実装の計画と履歴。phase report の数値は各時点のスナップショット |
+| `ideas` | 初期構想のアーカイブ。現行仕様は `docs` を参照 |
 | `work` | ローカル運用メモと補助スクリプト。公開 API / ドキュメント契約の対象外 |
-| `.github` | CI と PR 運用テンプレート |
+| `.github` | CI、PR 運用テンプレート、Copilot workspace skills |
 
 ## 開発フロー
 この repo では `ideas` -> `docs` -> `implementation` -> `src` の順で要求を具体化します。新しい機能を追加するときは、コードだけでなく関連 docs、tests、coverage への影響も同時に更新してください。

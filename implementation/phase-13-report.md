@@ -1,4 +1,6 @@
-# Phase 13 完了報告書
+# Phase 13 完了報告書（履歴）
+
+この文書のテスト件数、coverage、動作検証結果は Phase 13 完了時点のスナップショットである。現行の公開前基準と最新の回帰結果は `implementation/phase-status.md` とルート README を参照すること。
 
 ## 実装した内容の概要
 - [src/QuartzKnowledgeMcp.Tests/Workflows/OperationalCatalogFlowApiTests.cs](src/QuartzKnowledgeMcp.Tests/Workflows/OperationalCatalogFlowApiTests.cs) に `RepresentativeModes_PreserveRuleBasedFallback_AndEmbeddingDisabledSearch` を追加し、Bronze -> Silver -> Gold の主要フローに加えて、`useLlm=true` 要求時の rule-based fallback と Embedding 無効時の structured search 成立を 1 本の回帰 API テストで固定した。
@@ -49,7 +51,7 @@
 - `phase-status.md` 更新: yes
 
 ## 既存テストへの影響
-Phase 13 では既存機能の挙動は変更していない。回帰テストを 1 件追加した結果、全体テスト数は 79 件になり、`dotnet test src\QuartzKnowledgeMcp.slnx --no-build` は 79/79 成功した。
+Phase 13 完了時点では既存機能の挙動は変更していない。回帰テストを 1 件追加した結果、当時の全体テスト数は 79 件になり、`dotnet test src\QuartzKnowledgeMcp.slnx --no-build` は 79/79 成功した。
 
 ## docs との差異
 - 参照した docs / spec: [implementation/phase-13.md](implementation/phase-13.md)、[implementation/README.md](implementation/README.md)、[implementation/template/phase-report-template.md](implementation/template/phase-report-template.md)
