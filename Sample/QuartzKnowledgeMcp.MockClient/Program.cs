@@ -607,25 +607,6 @@ JsonElement ParseToolResultJson(CallToolResult result)
     return document.RootElement.Clone();
 }
 
-Guid? TryGetFirstItemId(CallToolResult result)
-{
-    var json = ParseToolResultJson(result);
-    if (!json.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
-    {
-        return null;
-    }
-
-    foreach (var item in items.EnumerateArray())
-    {
-        if (item.TryGetProperty("id", out var idProperty))
-        {
-            return idProperty.GetGuid();
-        }
-    }
-
-    return null;
-}
-
 void EnsureCapabilities(JsonElement capabilities, int loopIndex)
 {
     var search = capabilities.GetProperty("search");

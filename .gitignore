@@ -1,9 +1,11 @@
 **/bin/
 **/obj/
 **/TestResults/
+**/TestResultsCoverage/
 
 *.db
 *.db-shm
 *.db-wal
+coverage.cobertura.xml
 
 test_results.log

@@ -28,3 +28,4 @@
 - SQLite persistence と ingest / publish flow
 
 秘密情報、個人情報、実運用 credential は issue や log に含めないでください。
+サンプル設定に含まれる API key や Secret 値は無効なプレースホルダーであり、そのまま再利用しないでください。

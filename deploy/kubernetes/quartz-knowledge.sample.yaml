@@ -10,7 +10,8 @@ metadata:
   namespace: quartz-knowledge
 type: Opaque
 stringData:
-  api-key: change-me-before-deploy
+  # Sample placeholder only. Replace via your secret management workflow before deployment.
+  api-key: replace-with-generated-value
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

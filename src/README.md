@@ -16,7 +16,7 @@ dotnet test src/QuartzKnowledgeMcp.slnx --collect:"XPlat Code Coverage"
 
 API を起動した後は `/dashboard` で人間向けの参照画面を開けます。
 
-- dark glass / Azure portal 風の shell に再設計されており、PC 画面での一覧性を優先している
+- glass-style の運用 shell で、PC 画面での一覧性を優先している
 - Search tab : medallion 横断検索。`stage` / `tag` / `freshness` / `sort` と query なし browse を利用可能
 - Search result preview : タイトルクリックで Bronze / Silver / Gold の detail JSON を modal dialog で確認可能
 - Graph tab : bronze / silver / gold の件数、鮮度、recent items、3d / 7d trend を表示
@@ -45,6 +45,7 @@ API key auth は `src/QuartzKnowledgeMcp.Api/appsettings.json` の `Authenticati
 - `/api` と `/mcp` 配下は API key が必須になり、未指定または不正な key では `401` を返す
 - `/health` と静的な `/dashboard` shell は匿名のまま
 - ただし dashboard 本体は `/api/dashboard/*` を読むため、認証有効時の browser 利用は reverse proxy / ingress などで同じ header を注入する前提
+- 文書中の API key はプレースホルダーであり、そのまま配備しない
 
 ## コンテナ配備
 
@@ -54,7 +55,7 @@ API key auth は `src/QuartzKnowledgeMcp.Api/appsettings.json` の `Authenticati
 
 ```powershell
 docker build -t quartz-knowledge-mcp .
-docker run --rm -p 8080:8080 -v quartzknowledge-data:/data -e ASPNETCORE_ENVIRONMENT=Container -e Authentication__ApiKey__Enabled=true -e Authentication__ApiKey__ApiKey=change-me quartz-knowledge-mcp
+docker run --rm -p 8080:8080 -v quartzknowledge-data:/data -e ASPNETCORE_ENVIRONMENT=Container -e Authentication__ApiKey__Enabled=true -e Authentication__ApiKey__ApiKey=<generate-random-api-key> quartz-knowledge-mcp
 ```
 
 ## 運用スクリプト

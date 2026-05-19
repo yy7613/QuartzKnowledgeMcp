@@ -7,7 +7,7 @@ QuartzKnowledge MCP Server は、MCP server 情報を Bronze / Silver / Gold の
 ## 主な機能
 - Bronze ingestion から Silver organize、Gold catalog publish までの medallion pipeline
 - HTTP API と MCP tool surface の両対応
-- Azure portal 風の dashboard。Search / Graph / Inspect の 3 tab と検索結果 preview dialog を持ち、query string と localStorage で状態を復元
+- 運用向け dashboard。Search / Graph / Inspect の 3 tab と検索結果 preview dialog を持ち、query string と localStorage で状態を復元
 - `/api` と `/mcp` を設定で保護できる optional API key auth
 - `Dockerfile`、container appsettings、Kubernetes sample manifest を含む配備ひな形
 - Microsoft Learn の Agent Framework ページを curated ingest する PowerShell script
@@ -43,15 +43,16 @@ pwsh ./work/ingest-agent-framework-learn.ps1
 - API key auth は既定で無効です。`Authentication__ApiKey__Enabled=true` と `Authentication__ApiKey__ApiKey=<secret>` を設定すると `/api` と `/mcp` を保護します。
 - 既定 header 名は `X-QuartzKnowledge-Api-Key` です。`/health` と静的な `/dashboard` shell は匿名のままですが、dashboard が読む `/api/dashboard/*` も保護対象なので、認証有効時の browser 利用は reverse proxy / ingress などで header を注入する前提です。
 - Container 実行用に `Dockerfile`、`.dockerignore`、`src/QuartzKnowledgeMcp.Api/appsettings.Container.json`、`deploy/kubernetes/quartz-knowledge.sample.yaml` を同梱しています。
+- 文書中の API key や Secret 値はすべて無効なプレースホルダーです。本番では secret manager または orchestration platform の Secret 機能でランダム値を注入してください。
 
 ```powershell
 docker build -t quartz-knowledge-mcp .
-docker run --rm -p 8080:8080 -v quartzknowledge-data:/data -e ASPNETCORE_ENVIRONMENT=Container -e Authentication__ApiKey__Enabled=true -e Authentication__ApiKey__ApiKey=change-me quartz-knowledge-mcp
+docker run --rm -p 8080:8080 -v quartzknowledge-data:/data -e ASPNETCORE_ENVIRONMENT=Container -e Authentication__ApiKey__Enabled=true -e Authentication__ApiKey__ApiKey=<generate-random-api-key> quartz-knowledge-mcp
 ```
 
 ## 品質基準
-- 最新の全体回帰: 100 / 100 tests passing
-- 最新の記録済み line coverage: 88.86%
+- 直近の全体回帰: 2026-05-20 時点で 100 / 100 tests passing
+- 直近の記録済み line coverage: 2026-05-20 時点で 88.81%
 - coverage baseline: 85% 以上を維持
 
 ローカル確認コマンド:
@@ -74,7 +75,6 @@ GitHub Actions でも同じ基準を [.github/workflows/ci.yml](.github/workflow
 - [CONTRIBUTING.md](CONTRIBUTING.md): 開発参加時のセットアップと品質基準
 - [SECURITY.md](SECURITY.md): 脆弱性報告ポリシー
 - [implementation/phase-status.md](implementation/phase-status.md): coverage / regression 管理表
-- [work/mcp-quality-improvement-2026-05-19.md](work/mcp-quality-improvement-2026-05-19.md): repeated inspection の改善履歴
 
 ## リポジトリ構成
 | Path | Role |
@@ -84,7 +84,7 @@ GitHub Actions でも同じ基準を [.github/workflows/ci.yml](.github/workflow
 | `docs` | 仕様、設計、ADR |
 | `implementation` | phase 計画と完了記録 |
 | `ideas` | アイデアの原案 |
-| `work` | ギャップ、運用メモ、品質改善レポート |
+| `work` | ローカル運用メモと補助スクリプト。公開 API / ドキュメント契約の対象外 |
 | `.github` | CI と PR 運用テンプレート |
 
 ## 開発フロー
