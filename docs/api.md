@@ -15,7 +15,7 @@ MVP ではカテゴリ絞り込みは独立パラメータを持たず、`tag` /
 ## 認証
 API key auth は任意機能であり、既定では無効とする。
 
-- `Authentication:ApiKey:Enabled=true` のとき、`/api` と `/mcp` 配下は API key header を必須にする
+- `Authentication:ApiKey:Enabled=true` のとき、`/api` と `/mcp` 配下は API キー ヘッダーを必須にする
 - 既定 header 名は `X-QuartzKnowledge-Api-Key` で、設定で変更可能
 - `/health` と静的な `/dashboard` は匿名のまま公開する
 - `GET /api/dashboard/summary` と `GET /api/dashboard/search` も `/api` 配下のため保護対象に含まれる
@@ -59,8 +59,8 @@ API key auth は任意機能であり、既定では無効とする。
 | PUT | `/api/gold/catalog/{entryId}` | Gold カタログ本体を更新する | `overview`, `setupGuide`, `references`, `supportedClients` | `GoldCatalogEntryDetail` |
 | PUT | `/api/gold/catalog/{entryId}/tags` | タグを全置換で更新する | `tags[]` | `TagUpdateResult` |
 | GET | `/api/gold/catalog/{entryId}/related` | 類似または関連する Gold エントリを取得する | `entryId`, `limit`, `strategy` | `RelatedCatalogEntry[]` |
-| GET | `/api/dashboard/summary` | dashboard 用の stage summary / trend / tag cloud を取得する | `recentPerStage` | `DashboardSummaryResponse` |
-| GET | `/api/dashboard/search` | dashboard 用の browse / search 結果を取得する | `q`, `stage`, `tag`, `freshness`, `sort`, `limit` | `DashboardSearchResultResponse` |
+| GET | `/api/dashboard/summary` | ダッシュボード用のステージ サマリー / トレンド / タグクラウドを取得する | `recentPerStage` | `DashboardSummaryResponse` |
+| GET | `/api/dashboard/search` | ダッシュボード用のブラウズ / 検索結果を取得する | `q`, `stage`, `tag`, `freshness`, `sort`, `limit` | `DashboardSearchResultResponse` |
 | GET | `/api/system/capabilities` | 有効な LLM / Embedding / Search capabilities を返す | なし | `SystemCapabilities` |
 | GET | `/api/gold/catalog/{entryId}/history` | 更新履歴を取得する | `entryId`, `page`, `pageSize` | `EntryHistoryPage` |
 | GET | `/api/search` | キーワード、タグ、認証条件、クライアント条件で検索する | `q`, `tags[]`, `authType`, `client`, `page`, `pageSize` | `CatalogSearchResult` |
@@ -114,7 +114,7 @@ Bronze データをもとに Silver または Gold まで整理する。
 #### 挙動
 - `useLlm=false` の場合は規則ベース整理を行う
 - `useLlm=true` でも LLM が未設定または一時的に利用不可な場合は規則ベース整理へフォールバックし、レスポンスの `usedLlm` は `false` にする
-- `mode=preview` の場合は永続化せず提案内容のみ返す
+- `mode=preview` の場合は永続化せずプレビュー内容のみ返す
 - `targetLayer=silver` の場合は Silver 下書きで停止する
 
 #### レスポンス
@@ -238,18 +238,18 @@ Gold エントリの更新履歴を取得する。
 - CLI や UI からの簡易検索
 
 ### GET `/api/dashboard/summary`
-dashboard の上部 KPI、メダリオン別集計、trend、recent item、tag cloud を取得する。
+ダッシュボードの上部 KPI、メダリオン別集計、トレンド、recent item、タグクラウドを取得する。
 
 #### クエリパラメータ
 - `recentPerStage`: 各 stage の recent items 件数。`1` から `20` まで、既定は `8`
 
 #### 用途
-- dashboard 初期表示
-- operator 向けの全体把握
-- tag cloud と trend の再読込
+- ダッシュボード初期表示
+- 運用向けの全体把握
+- タグクラウドとトレンドの再読込
 
 ### GET `/api/dashboard/search`
-dashboard 用の browse / search API。stage を跨いだ一覧と、preview dialog の入口となる `detailPath` を返す。
+ダッシュボード用のブラウズ / 検索 API。stage を跨いだ一覧と、プレビュー ダイアログの入口となる `detailPath` を返す。
 
 #### クエリパラメータ
 - `q`: キーワード。未指定でも tag / freshness / stage があれば browse として利用可能
@@ -262,7 +262,7 @@ dashboard 用の browse / search API。stage を跨いだ一覧と、preview dia
 #### 挙動
 - `q` と filter がどちらも空のときは `0` 件を返す
 - `detailPath` は stage ごとの detail JSON endpoint を指す
-- dashboard UI では result title click で preview dialog を開き、必要時だけ detail JSON を読む
+- ダッシュボード UI では結果タイトルのクリックでプレビュー ダイアログを開き、必要時だけ detail JSON を読む
 
 ### POST `/api/search/query`
 複雑な条件をリクエストボディで受け取る高度検索 API。

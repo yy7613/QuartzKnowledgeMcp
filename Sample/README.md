@@ -2,7 +2,7 @@
 
 `QuartzKnowledgeMcp.MockClient` はローカルで起動した API / MCP サーバーに対して、主要フローを順に叩くモッククライアントです。
 
-HTTP flow と MCP flow の両方で、日本語を含む seed を Bronze -> Silver -> Gold へ流し込みます。dashboard の検索や inspector を人間が試す前の runtime smoke として使えます。
+HTTP flow と MCP flow の両方で、日本語を含む seed を Bronze -> Silver -> Gold へ流し込みます。ダッシュボードの検索やインスペクターを人間が試す前のランタイム スモークとして使えます。
 
 ## 実行例
 
@@ -22,7 +22,7 @@ MCP のみ確認する場合:
 dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://localhost:5080 --mcp-only
 ```
 
-`--mcp-only` は preview organize の非永続化確認を行った後、bronze -> silver -> gold -> search/history/related までの MCP smoke を通します。
+`--mcp-only` はプレビュー organize の非永続化確認を行った後、bronze -> silver -> gold -> search/history/related までの MCP スモークを通します。
 
 大きめのデータを投入しながら 24 回の MCP 品質ループを回す場合:
 
@@ -30,7 +30,7 @@ dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://l
 dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://localhost:5080 --quality-only --seed-count 24 --inspection-loops 24
 ```
 
-`--quality-only` では日本語ラベルを含む quality seed を使い、search / history / related / preview organize の repeated inspection をまとめて検証します。
+`--quality-only` では日本語ラベルを含む品質シードを使い、search / history / related / プレビュー organize の反復インスペクションをまとめて検証します。
 
 繰り返し品質検査では quality 専用 DB を使う方が安全です。
 
@@ -44,7 +44,7 @@ Quality DB の接続先は API project の content root 基準に固定されて
 - HTTP create / organize / publish / update / tag replace / search の一連フロー
 - MCP tool list と health check
 - MCP create / organize preview / detail / publish / advanced search / history / related
-- dashboard で確認しやすい日本語 entry の投入
+- ダッシュボードで確認しやすい日本語エントリの投入
 
 ## クライアント設定例
 

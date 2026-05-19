@@ -2,12 +2,12 @@
 
 QuartzKnowledge MCP Server は、MCP server 情報を Bronze / Silver / Gold の medallion flow で取り込み、HTTP API と MCP の両面から検索・運用できる .NET 10 ベースの knowledge server です。
 
-人間向けには dark glass の dashboard を持ち、検索結果 preview、メダリオン別の推移、Gold entry の detail / history / related を PC 画面で確認できます。
+人間向けには dark glass のダッシュボードを持ち、検索結果プレビュー、メダリオン別の推移、Gold entry の詳細 / 履歴 / 関連情報を PC 画面で確認できます。
 
 ## 主な機能
 - Bronze ingestion から Silver organize、Gold catalog publish までの medallion pipeline
 - HTTP API と MCP tool surface の両対応
-- 運用向け dashboard。Search / Graph / Inspect の 3 tab と検索結果 preview dialog を持ち、query string と localStorage で状態を復元
+- 運用向けダッシュボード。Search / Graph / Inspect の 3 タブと検索結果プレビュー ダイアログを持ち、クエリ文字列と localStorage で状態を復元
 - `/api` と `/mcp` を設定で保護できる optional API key auth
 - `Dockerfile`、container appsettings、Kubernetes sample manifest を含む配備ひな形
 - Microsoft Learn の Agent Framework ページを curated ingest する PowerShell script
@@ -21,7 +21,7 @@ QuartzKnowledge MCP Server は、MCP server 情報を Bronze / Silver / Gold の
 dotnet run --project src/QuartzKnowledgeMcp.Api/QuartzKnowledgeMcp.Api.csproj --urls http://localhost:5080
 ```
 
-2. dashboard を開きます。
+2. ダッシュボードを開きます。
 
 ```text
 http://localhost:5080/dashboard
@@ -41,7 +41,7 @@ pwsh ./work/ingest-agent-framework-learn.ps1
 
 ## 認証と配備
 - API key auth は既定で無効です。`Authentication__ApiKey__Enabled=true` と `Authentication__ApiKey__ApiKey=<secret>` を設定すると `/api` と `/mcp` を保護します。
-- 既定 header 名は `X-QuartzKnowledge-Api-Key` です。`/health` と静的な `/dashboard` shell は匿名のままですが、dashboard が読む `/api/dashboard/*` も保護対象なので、認証有効時の browser 利用は reverse proxy / ingress などで header を注入する前提です。
+- 既定 header 名は `X-QuartzKnowledge-Api-Key` です。`/health` と静的な `/dashboard` シェルは匿名のままですが、ダッシュボードが読む `/api/dashboard/*` も保護対象なので、認証有効時のブラウザー利用はリバースプロキシや Ingress などで header を注入する前提です。
 - Container 実行用に `Dockerfile`、`.dockerignore`、`src/QuartzKnowledgeMcp.Api/appsettings.Container.json`、`deploy/kubernetes/quartz-knowledge.sample.yaml` を同梱しています。
 - 文書中の API key や Secret 値はすべて無効なプレースホルダーです。本番では secret manager または orchestration platform の Secret 機能でランダム値を注入してください。
 
@@ -69,7 +69,7 @@ GitHub Actions でも同じ基準を [.github/workflows/ci.yml](.github/workflow
 - [docs/spec.md](docs/spec.md): 要求と仕様
 - [docs/architecture.md](docs/architecture.md): 全体アーキテクチャ
 - [docs/api.md](docs/api.md): HTTP API surface
-- [src/README.md](src/README.md): ソースツリー、dashboard、テスト運用
+- [src/README.md](src/README.md): ソースツリー、ダッシュボード、テスト運用
 - [Sample/README.md](Sample/README.md): Sample mock client と quality harness
 - [deploy/kubernetes/quartz-knowledge.sample.yaml](deploy/kubernetes/quartz-knowledge.sample.yaml): Kubernetes 配備サンプル
 - [CONTRIBUTING.md](CONTRIBUTING.md): 開発参加時のセットアップと品質基準

@@ -1,12 +1,12 @@
 # Security Policy
 
 ## Supported versions
-現在の security fixes は `main` branch を基準に提供します。リリースタグを切った後は、最新タグと `main` を優先して対応します。
+この repository のセキュリティ修正は個人メンテナンス前提のベストエフォートです。原則として `main` branch と最新タグを優先し、古いタグへのバックポートは保証しません。
 
 ## Reporting a vulnerability
-脆弱性の報告は public issue に書かないでください。まず GitHub の Security tab にある private vulnerability reporting を利用してください。
+脆弱性の詳細は公開 issue に書かないでください。GitHub の private vulnerability reporting が有効であれば、まずそちらを利用してください。
 
-もし repository 側で private report が未設定の場合は、maintainer に private channel で連絡し、再現手順、影響範囲、想定される悪用条件を共有してください。
+もし private vulnerability reporting が未設定の場合は、攻撃手順や秘密情報を公開せず、issue、Discussion、または GitHub profile の連絡先から非公開連絡手段の案内を依頼してください。
 
 報告には次の情報を含めてください。
 - 対象 endpoint または MCP tool
@@ -16,15 +16,17 @@
 - 可能なら修正案または緩和策
 
 ## Response goals
-- 受領確認: 3 営業日以内
-- 初回トリアージ: 7 営業日以内
-- 修正方針または緩和策の共有: 14 営業日以内
+以下は SLA ではなく目安です。個人プロジェクトのため、状況に応じて前後します。
+
+- 受領確認: できるだけ 7 日以内
+- 初回トリアージ: できるだけ 14 日以内
+- 修正方針または緩和策の共有: ベストエフォート
 
 ## Scope notes
 この repository では以下を主な対象とします。
 - HTTP API
 - MCP tool surface
-- dashboard の operator-facing UI
+- ダッシュボード UI
 - SQLite persistence と ingest / publish flow
 
 秘密情報、個人情報、実運用 credential は issue や log に含めないでください。
