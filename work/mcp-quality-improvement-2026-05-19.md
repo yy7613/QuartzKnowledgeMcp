@@ -105,6 +105,30 @@
   - browser runtime smoke: Gold Inspector の detail / history 2 件 / related 5 件の表示を確認
   - browser runtime smoke: trend を 3d に変更後、素の `/dashboard` 再訪で `trend=3d` と inspect state の localStorage 復元を確認
 
+### Round 7
+- 追加要求:
+  - dashboard を dark glass の Azure portal 風デザインへ更新する
+  - PC 画面で一目で状況が分かるように Search / Graph / Inspect tab を明確化する
+  - 日本語 seed を増やし、unit test と E2E test を追加する
+  - GitHub 公開向けの docs / CI / coverage gate を整備する
+- 実施:
+  - dashboard shell を tabbed workspace 構成へ再設計した
+  - active tab を query string と localStorage に保存するようにした
+  - MockClient と quality seed を日本語強化データへ更新した
+  - `DashboardServiceTests` と `DashboardWorkflowApiTests` を追加した
+  - GitHub Actions CI、CONTRIBUTING、SECURITY、PR template を追加した
+- 発見した改善点:
+  - service test fixture の重複 seed は同一 URI / content hash で 1 件に畳まれるため、browse test の件数期待が不安定になる
+  - dashboard shell の DOM / JS は API tests だけでは守れず、browser smoke が必要
+- 修正:
+  - service test では distinct source URI を使って gold entry を明示生成するようにした
+  - browser smoke を追加し、検索、グラフ、inspect、tab restore を実ブラウザで確認した
+- 結果:
+  - focused dashboard tests: 9/9 pass
+  - full solution regression: 97/97 pass
+  - coverage: line 88.86%, branch 69.78%
+  - browser runtime smoke: `q=日本語` の検索、Graph tab、Inspect tab、bare `/dashboard` 再訪での state restore を確認
+
 ## 合計反復数
 - Inspection loops: 72 回
 - Seed rounds: 72 件
@@ -135,6 +159,12 @@ Round 4 の追加検査:
 - query string と localStorage を使う dashboard state persistence
 - `/dashboard` redirect の query 維持
 - 3d / 7d trend toggle
+- dark glass / Azure portal 風の tabbed dashboard shell
+- 日本語を強化した Sample client と quality seed
+- DashboardService の service-level tests
+- dashboard summary/search/detail/history/related を通す workflow E2E tests
+- GitHub Actions CI と 85% coverage gate
+- CONTRIBUTING / SECURITY / PR template の追加
 
 ## Mermaid
 ```mermaid
@@ -162,6 +192,7 @@ flowchart TD
 - 24 loop の repeated inspection で preview 非永続化, search, suggestions, facets, history, capabilities, related entries まで再発なく通った
 - 大容量 seed を MCP 経由で投入しても基本フローは安定した
 - dashboard により human operator が DB を直接見ずに検索、鮮度、タグ、recent update、history、related を確認できるようになった
+- GitHub で公開しても最低限の実行手順、貢献手順、security report 導線、CI gate を説明できる状態になった
 
 ### 中立的
 - 反復 harness は品質確認に有効だが、ローカル SQLite を継続的に膨らませるため運用には意図的な DB 管理が必要

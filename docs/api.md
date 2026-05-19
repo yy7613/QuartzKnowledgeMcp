@@ -12,6 +12,15 @@ HTTP API として公開しつつ、将来的に MCP サーバーのツールと
 本 API は実装上、DB、Embedding、LLM をそれぞれ Port 経由で切り替え可能な前提で設計する。
 MVP ではカテゴリ絞り込みは独立パラメータを持たず、`tag` / `tags[]` を使って表現する。
 
+## 認証
+API key auth は任意機能であり、既定では無効とする。
+
+- `Authentication:ApiKey:Enabled=true` のとき、`/api` と `/mcp` 配下は API key header を必須にする
+- 既定 header 名は `X-QuartzKnowledge-Api-Key` で、設定で変更可能
+- `/health` と静的な `/dashboard` は匿名のまま公開する
+- `GET /api/dashboard/summary` と `GET /api/dashboard/search` も `/api` 配下のため保護対象に含まれる
+- key が未指定または不正な場合、`/api` と `/mcp` は `401 Unauthorized` を返す
+
 ## データ層と状態遷移
 | 層 | 主なリソース | 役割 | 次状態 |
 |:--|:--|:--|:--|
@@ -50,6 +59,8 @@ MVP ではカテゴリ絞り込みは独立パラメータを持たず、`tag` /
 | PUT | `/api/gold/catalog/{entryId}` | Gold カタログ本体を更新する | `overview`, `setupGuide`, `references`, `supportedClients` | `GoldCatalogEntryDetail` |
 | PUT | `/api/gold/catalog/{entryId}/tags` | タグを全置換で更新する | `tags[]` | `TagUpdateResult` |
 | GET | `/api/gold/catalog/{entryId}/related` | 類似または関連する Gold エントリを取得する | `entryId`, `limit`, `strategy` | `RelatedCatalogEntry[]` |
+| GET | `/api/dashboard/summary` | dashboard 用の stage summary / trend / tag cloud を取得する | `recentPerStage` | `DashboardSummaryResponse` |
+| GET | `/api/dashboard/search` | dashboard 用の browse / search 結果を取得する | `q`, `stage`, `tag`, `freshness`, `sort`, `limit` | `DashboardSearchResultResponse` |
 | GET | `/api/system/capabilities` | 有効な LLM / Embedding / Search capabilities を返す | なし | `SystemCapabilities` |
 | GET | `/api/gold/catalog/{entryId}/history` | 更新履歴を取得する | `entryId`, `page`, `pageSize` | `EntryHistoryPage` |
 | GET | `/api/search` | キーワード、タグ、認証条件、クライアント条件で検索する | `q`, `tags[]`, `authType`, `client`, `page`, `pageSize` | `CatalogSearchResult` |
@@ -225,6 +236,33 @@ Gold エントリの更新履歴を取得する。
 - 一般的な検索一覧画面
 - MCP ツールからの単発検索
 - CLI や UI からの簡易検索
+
+### GET `/api/dashboard/summary`
+dashboard の上部 KPI、メダリオン別集計、trend、recent item、tag cloud を取得する。
+
+#### クエリパラメータ
+- `recentPerStage`: 各 stage の recent items 件数。`1` から `20` まで、既定は `8`
+
+#### 用途
+- dashboard 初期表示
+- operator 向けの全体把握
+- tag cloud と trend の再読込
+
+### GET `/api/dashboard/search`
+dashboard 用の browse / search API。stage を跨いだ一覧と、preview dialog の入口となる `detailPath` を返す。
+
+#### クエリパラメータ
+- `q`: キーワード。未指定でも tag / freshness / stage があれば browse として利用可能
+- `stage`: `bronze`, `silver`, `gold`
+- `tag`: Gold tag の完全一致フィルタ
+- `freshness`: `24h`, `7d`, `older`
+- `sort`: `newest`, `oldest`, `title`, `stage`
+- `limit`: 最大件数。`1` から `100` まで、既定は `30`
+
+#### 挙動
+- `q` と filter がどちらも空のときは `0` 件を返す
+- `detailPath` は stage ごとの detail JSON endpoint を指す
+- dashboard UI では result title click で preview dialog を開き、必要時だけ detail JSON を読む
 
 ### POST `/api/search/query`
 複雑な条件をリクエストボディで受け取る高度検索 API。

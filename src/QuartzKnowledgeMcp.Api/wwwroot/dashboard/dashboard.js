@@ -1,6 +1,6 @@
 const summaryEndpoint = document.body.dataset.summaryEndpoint ?? "/api/dashboard/summary?recentPerStage=8";
 const searchEndpoint = document.body.dataset.searchEndpoint ?? "/api/dashboard/search";
-const dashboardStateStorageKey = "quartz-knowledge-dashboard-state-v3";
+const dashboardStateStorageKey = "quartz-knowledge-dashboard-state-v4";
 
 const overviewCards = document.getElementById("overview-cards");
 const stageColumns = document.getElementById("stage-columns");
@@ -17,15 +17,23 @@ const freshnessFilter = document.getElementById("freshness-filter");
 const searchSort = document.getElementById("search-sort");
 const clearSearchFiltersButton = document.getElementById("clear-search-filters");
 const trendWindowToggle = document.getElementById("trend-window-toggle");
+const dashboardTabList = document.getElementById("dashboard-tablist");
+const dashboardTabs = Array.from(document.querySelectorAll("[data-tab]"));
+const dashboardPanels = Array.from(document.querySelectorAll("[data-dashboard-panel]"));
 const inspectorMeta = document.getElementById("inspector-meta");
 const clearInspectorButton = document.getElementById("clear-inspector");
 const inspectorEmpty = document.getElementById("gold-inspector-empty");
 const inspectorPanel = document.getElementById("gold-inspector-panel");
+const resultPreviewDialog = document.getElementById("result-preview-dialog");
+const resultPreviewMeta = document.getElementById("result-preview-meta");
+const resultPreviewBody = document.getElementById("result-preview-body");
+const resultPreviewCloseButton = document.getElementById("result-preview-close");
 
 let selectedStage = "all";
 let selectedTag = "";
 let trendWindow = "7d";
 let selectedInspectorId = "";
+let activeDashboardTab = "search";
 let currentSummary = null;
 
 refreshSummaryButton.addEventListener("click", () => {
@@ -61,9 +69,20 @@ trendWindowToggle.addEventListener("click", (event) => {
   }
 
   setTrendWindow(target.dataset.window ?? "7d");
+  setActiveDashboardTab("analytics");
   if (currentSummary) {
     renderStages(currentSummary);
   }
+  persistDashboardState();
+});
+
+dashboardTabList.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  setActiveDashboardTab(target.dataset.tab ?? "search");
   persistDashboardState();
 });
 
@@ -87,6 +106,20 @@ clearSearchFiltersButton.addEventListener("click", () => {
 clearInspectorButton.addEventListener("click", () => {
   clearInspector();
 });
+
+if (resultPreviewCloseButton instanceof HTMLButtonElement) {
+  resultPreviewCloseButton.addEventListener("click", () => {
+    closeResultPreview();
+  });
+}
+
+if (resultPreviewDialog instanceof HTMLDialogElement) {
+  resultPreviewDialog.addEventListener("click", (event) => {
+    if (event.target === resultPreviewDialog) {
+      closeResultPreview();
+    }
+  });
+}
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -160,6 +193,7 @@ async function runSearch() {
   params.set("sort", searchSort.value);
   params.set("limit", "24");
 
+  setActiveDashboardTab("search");
   searchMeta.textContent = `検索中: ${query || "filter browse"}`;
   updateSearchStatus();
   setLoadingState(searchResults, "検索結果を読み込み中...");
@@ -197,7 +231,7 @@ function renderOverview(summary) {
   const template = document.getElementById("overview-card-template");
   for (const [index, card] of cards.entries()) {
     const node = template.content.firstElementChild.cloneNode(true);
-    node.style.animationDelay = `${index * 60}ms`;
+    node.style.animationDelay = `${index * 50}ms`;
     node.querySelector(".metric-card__label").textContent = card.label;
     node.querySelector(".metric-card__value").textContent = String(card.value);
     node.querySelector(".metric-card__hint").textContent = card.hint;
@@ -214,7 +248,7 @@ function renderStages(summary) {
 
   for (const [index, stage] of stages.entries()) {
     const node = template.content.firstElementChild.cloneNode(true);
-    node.style.animationDelay = `${index * 80}ms`;
+    node.style.animationDelay = `${index * 70}ms`;
     node.querySelector(".stage-card__name").textContent = stage.stage;
     node.querySelector(".stage-card__count").textContent = `${stage.totalCount} 件`;
     node.querySelector(".stage-card__latest").textContent = `最新: ${formatTimestamp(stage.latestActivityAtUtc)}`;
@@ -227,7 +261,7 @@ function renderStages(summary) {
     for (const point of trendPoints) {
       const bar = document.createElement("div");
       bar.className = "trend-bar";
-      const fillHeight = Math.max(28, Math.round((point.count / maxTrendCount) * 72));
+      const fillHeight = Math.max(22, Math.round((point.count / maxTrendCount) * 72));
       bar.innerHTML = `
         <div class="trend-bar__fill" style="height:${fillHeight}px"></div>
         <span class="trend-bar__count">${point.count}</span>
@@ -309,10 +343,11 @@ function renderTags(tags) {
     const item = document.createElement("button");
     item.type = "button";
     item.className = `tag-chip reveal${selectedTag === tag.label ? " tag-chip--active" : ""}`;
-    item.style.animationDelay = `${index * 25}ms`;
+    item.style.animationDelay = `${index * 20}ms`;
     item.textContent = `${tag.label} (${tag.count})`;
     item.addEventListener("click", async () => {
       selectedTag = selectedTag === tag.label ? "" : tag.label;
+      setActiveDashboardTab("search");
       updateSearchStatus();
       renderTags(tags);
       await runSearch();
@@ -336,7 +371,7 @@ function renderSearchResults(payload) {
   const template = document.getElementById("search-item-template");
   for (const [index, item] of payload.items.entries()) {
     const node = template.content.firstElementChild.cloneNode(true);
-    node.style.animationDelay = `${index * 35}ms`;
+    node.style.animationDelay = `${index * 28}ms`;
     const stagePill = node.querySelector(".stage-pill");
     stagePill.dataset.stage = item.stage;
     stagePill.textContent = item.stage;
@@ -344,6 +379,10 @@ function renderSearchResults(payload) {
     const link = node.querySelector(".result-card__link");
     link.href = item.detailPath;
     link.textContent = item.title;
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      await openResultPreview(item);
+    });
     const inspectButton = node.querySelector(".result-card__inspect");
     inspectButton.hidden = item.stage !== "gold";
     if (item.stage === "gold") {
@@ -362,6 +401,7 @@ function renderSearchResults(payload) {
       chip.textContent = tag;
       chip.addEventListener("click", async () => {
         selectedTag = tag;
+        setActiveDashboardTab("search");
         updateSearchStatus(payload);
         if (currentSummary) {
           renderTags(currentSummary.tags);
@@ -375,17 +415,242 @@ function renderSearchResults(payload) {
   }
 }
 
+async function openResultPreview(item) {
+  if (!(resultPreviewDialog instanceof HTMLDialogElement) || !resultPreviewMeta || !resultPreviewBody) {
+    window.open(item.detailPath, "_blank", "noreferrer");
+    return;
+  }
+
+  resultPreviewMeta.textContent = `${item.stage} detail を読み込み中...`;
+  resultPreviewBody.className = "preview-dialog__body empty-state";
+  resultPreviewBody.textContent = "詳細を読み込み中...";
+
+  if (!resultPreviewDialog.open) {
+    resultPreviewDialog.showModal();
+  }
+
+  try {
+    const response = await fetch(item.detailPath, { headers: { Accept: "application/json" } });
+    if (!response.ok) {
+      throw new Error(`preview request failed: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    renderResultPreview(item, payload);
+    resultPreviewMeta.textContent = `${item.title} / ${item.stage} / ${formatTimestamp(item.timestampUtc)}`;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    resultPreviewBody.className = "preview-dialog__body empty-state";
+    resultPreviewBody.textContent = `読み込みに失敗しました: ${message}`;
+    resultPreviewMeta.textContent = `preview error: ${message}`;
+  }
+}
+
+function closeResultPreview() {
+  if (resultPreviewDialog instanceof HTMLDialogElement && resultPreviewDialog.open) {
+    resultPreviewDialog.close();
+  }
+}
+
+function renderResultPreview(item, payload) {
+  if (!resultPreviewBody) {
+    return;
+  }
+
+  resultPreviewBody.className = "preview-dialog__body";
+
+  switch (item.stage) {
+    case "bronze":
+      renderBronzePreview(item, payload);
+      break;
+    case "silver":
+      renderSilverPreview(item, payload);
+      break;
+    case "gold":
+      renderGoldPreview(item, payload);
+      break;
+    default:
+      resultPreviewBody.innerHTML = '<div class="empty-state">未対応の stage です。</div>';
+      break;
+  }
+}
+
+function renderBronzePreview(item, detail) {
+  const rawContent = truncateText(detail.rawContent || "", 3600);
+  resultPreviewBody.innerHTML = `
+    <section class="preview-dialog__section reveal">
+      <div class="preview-dialog__summary-topline">
+        <div>
+          <p class="section-kicker">Bronze</p>
+          <h3 class="preview-dialog__summary-title">${escapeHtml(detail.sourceUri || item.title)}</h3>
+        </div>
+        <div class="preview-dialog__actions">
+          <a class="button button--ghost button--compact" href="${escapeAttribute(item.detailPath)}" target="_blank" rel="noreferrer">JSON</a>
+        </div>
+      </div>
+      <p class="preview-dialog__summary-text">${escapeHtml(item.summary || "raw content preview")}</p>
+      <div class="preview-dialog__meta-grid">
+        ${renderPreviewMetaItem("Source type", detail.sourceType)}
+        ${renderPreviewMetaItem("Status", detail.status)}
+        ${renderPreviewMetaItem("Imported", formatTimestamp(detail.importedAtUtc))}
+        ${renderPreviewMetaItem("Imported by", detail.importedBy || "なし")}
+      </div>
+    </section>
+    <section class="preview-dialog__section reveal">
+      <p class="section-kicker">Raw Content</p>
+      <pre class="preview-dialog__pre">${escapeHtml(rawContent || "内容なし")}</pre>
+    </section>`;
+}
+
+function renderSilverPreview(item, detail) {
+  const tagsMarkup = renderInlineTags(detail.tagCandidates || []);
+  const toolMarkup = (detail.toolDrafts || []).length === 0
+    ? '<div class="preview-dialog__list-item"><strong>Tools</strong><span>tool draft はありません。</span></div>'
+    : detail.toolDrafts.map((tool) => `
+      <div class="preview-dialog__list-item">
+        <strong>${escapeHtml(tool.name)}</strong>
+        <span>${escapeHtml(tool.description)}</span>
+      </div>`).join("");
+
+  resultPreviewBody.innerHTML = `
+    <section class="preview-dialog__section reveal">
+      <div class="preview-dialog__summary-topline">
+        <div>
+          <p class="section-kicker">Silver</p>
+          <h3 class="preview-dialog__summary-title">${escapeHtml(detail.name || item.title)}</h3>
+        </div>
+        <div class="preview-dialog__actions">
+          <a class="button button--ghost button--compact" href="${escapeAttribute(item.detailPath)}" target="_blank" rel="noreferrer">JSON</a>
+        </div>
+      </div>
+      <p class="preview-dialog__summary-text">${escapeHtml(detail.summary || item.summary)}</p>
+      <div class="preview-dialog__meta-grid">
+        ${renderPreviewMetaItem("Organized", formatTimestamp(detail.organizedAtUtc))}
+        ${renderPreviewMetaItem("Bronze source", detail.bronzeSourceId || "なし")}
+      </div>
+      <div class="tag-cloud">${tagsMarkup}</div>
+    </section>
+    <section class="preview-dialog__section reveal">
+      <p class="section-kicker">Tool Drafts</p>
+      <div class="preview-dialog__list">${toolMarkup}</div>
+    </section>`;
+}
+
+function renderGoldPreview(item, detail) {
+  const tagsMarkup = renderInlineTags(detail.tags || []);
+  const referencesMarkup = (detail.references || []).length === 0
+    ? '<div class="preview-dialog__list-item"><strong>References</strong><span>reference はありません。</span></div>'
+    : detail.references.map((reference) => `
+      <div class="preview-dialog__list-item">
+        <strong>${escapeHtml(reference.label)}</strong>
+        <span><a class="inspector-anchor" href="${escapeAttribute(reference.url)}" target="_blank" rel="noreferrer">${escapeHtml(reference.url)}</a></span>
+      </div>`).join("");
+  const toolMarkup = (detail.toolSummaries || []).length === 0
+    ? '<div class="preview-dialog__list-item"><strong>Tools</strong><span>tool summary はありません。</span></div>'
+    : detail.toolSummaries.map((tool) => `
+      <div class="preview-dialog__list-item">
+        <strong>${escapeHtml(tool.name)}</strong>
+        <span>${escapeHtml(tool.description)}</span>
+      </div>`).join("");
+
+  resultPreviewBody.innerHTML = `
+    <section class="preview-dialog__section reveal">
+      <div class="preview-dialog__summary-topline">
+        <div>
+          <p class="section-kicker">Gold</p>
+          <h3 class="preview-dialog__summary-title">${escapeHtml(detail.displayName || item.title)}</h3>
+        </div>
+        <div class="preview-dialog__actions">
+          <button class="button button--ghost button--compact" type="button" id="preview-open-inspector">Inspector で開く</button>
+          <a class="button button--ghost button--compact" href="${escapeAttribute(item.detailPath)}" target="_blank" rel="noreferrer">JSON</a>
+        </div>
+      </div>
+      <p class="preview-dialog__summary-text">${escapeHtml(detail.overview || item.summary)}</p>
+      <div class="tag-cloud">${tagsMarkup}</div>
+      <div class="preview-dialog__meta-grid">
+        ${renderPreviewMetaItem("Auth", detail.authenticationType || "unknown")}
+        ${renderPreviewMetaItem("Clients", (detail.supportedClients || []).join(", ") || "なし")}
+        ${renderPreviewMetaItem("Published", formatTimestamp(detail.publishedAtUtc))}
+        ${renderPreviewMetaItem("Updated", formatTimestamp(detail.updatedAtUtc))}
+      </div>
+    </section>
+    <section class="preview-dialog__grid reveal">
+      <article class="preview-dialog__section">
+        <p class="section-kicker">Setup</p>
+        <pre class="preview-dialog__pre">${escapeHtml(detail.setupGuide || "なし")}</pre>
+      </article>
+      <article class="preview-dialog__section">
+        <p class="section-kicker">References</p>
+        <div class="preview-dialog__list">${referencesMarkup}</div>
+      </article>
+    </section>
+    <section class="preview-dialog__section reveal">
+      <p class="section-kicker">Tool Summaries</p>
+      <div class="preview-dialog__list">${toolMarkup}</div>
+    </section>`;
+
+  const inspectButton = resultPreviewBody.querySelector("#preview-open-inspector");
+  if (inspectButton instanceof HTMLButtonElement) {
+    inspectButton.addEventListener("click", async () => {
+      closeResultPreview();
+      await inspectGoldEntry(detail.id);
+    });
+  }
+}
+
+function renderPreviewMetaItem(label, value) {
+  return `
+    <div class="preview-dialog__meta-item">
+      <strong>${escapeHtml(label)}</strong>
+      <span>${escapeHtml(value)}</span>
+    </div>`;
+}
+
+function renderInlineTags(tags) {
+  if (!Array.isArray(tags) || tags.length === 0) {
+    return '<span class="tag-chip">tag なし</span>';
+  }
+
+  return tags.map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join("");
+}
+
+function truncateText(value, maxLength) {
+  if (!value || value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength)}\n\n...`;
+}
+
 function setSelectedStage(stage) {
   selectedStage = stage;
   for (const button of stageFilter.querySelectorAll("button")) {
-    button.classList.toggle("chip--active", button.dataset.stage === stage);
+    const isActive = button.dataset.stage === stage;
+    button.classList.toggle("chip--active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
   }
 }
 
 function setTrendWindow(windowValue) {
   trendWindow = normalizeTrendWindow(windowValue);
   for (const button of trendWindowToggle.querySelectorAll("button")) {
-    button.classList.toggle("chip--active", button.dataset.window === trendWindow);
+    const isActive = button.dataset.window === trendWindow;
+    button.classList.toggle("chip--active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  }
+}
+
+function setActiveDashboardTab(tabValue) {
+  activeDashboardTab = normalizeTab(tabValue);
+
+  for (const tab of dashboardTabs) {
+    const isActive = tab.dataset.tab === activeDashboardTab;
+    tab.classList.toggle("tab-chip--active", isActive);
+    tab.setAttribute("aria-selected", isActive ? "true" : "false");
+  }
+
+  for (const panel of dashboardPanels) {
+    panel.hidden = panel.dataset.dashboardPanel !== activeDashboardTab;
   }
 }
 
@@ -420,6 +685,8 @@ function restoreDashboardState() {
   searchSort.value = normalizeSortValue(params.get("sort") ?? storedState.sort);
   setTrendWindow(params.get("trend") ?? storedState.trend ?? "7d");
   selectedInspectorId = params.get("inspect") ?? storedState.inspect ?? "";
+  const restoredTab = params.get("tab") ?? storedState.tab ?? (selectedInspectorId ? "inspect" : "search");
+  setActiveDashboardTab(restoredTab);
 }
 
 function persistDashboardState() {
@@ -430,7 +697,8 @@ function persistDashboardState() {
     freshness: freshnessFilter.value !== "all" ? freshnessFilter.value : "",
     sort: searchSort.value !== "newest" ? searchSort.value : "",
     trend: trendWindow !== "7d" ? trendWindow : "",
-    inspect: selectedInspectorId
+    inspect: selectedInspectorId,
+    tab: activeDashboardTab !== "search" ? activeDashboardTab : ""
   };
 
   const url = new URL(window.location.href);
@@ -441,6 +709,7 @@ function persistDashboardState() {
   setOrDeleteQueryValue(url.searchParams, "sort", state.sort);
   setOrDeleteQueryValue(url.searchParams, "trend", state.trend);
   setOrDeleteQueryValue(url.searchParams, "inspect", state.inspect);
+  setOrDeleteQueryValue(url.searchParams, "tab", state.tab);
   history.replaceState({}, "", url);
 
   try {
@@ -472,6 +741,7 @@ function hasSearchIntent() {
 
 async function inspectGoldEntry(entryId) {
   selectedInspectorId = entryId;
+  setActiveDashboardTab("inspect");
   persistDashboardState();
   inspectorMeta.textContent = "gold detail / history / related を読み込み中...";
   inspectorEmpty.hidden = true;
@@ -626,6 +896,10 @@ function normalizeSortValue(value) {
 
 function normalizeTrendWindow(value) {
   return value === "3d" ? "3d" : "7d";
+}
+
+function normalizeTab(value) {
+  return value === "analytics" || value === "inspect" ? value : "search";
 }
 
 function setLoadingState(element, message) {

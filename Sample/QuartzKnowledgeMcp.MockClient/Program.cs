@@ -51,7 +51,7 @@ async Task RunHttpFlowAsync(string baseUrl, JsonSerializerOptions jsonOptions)
     {
         sourceType = "github-readme",
         sourceUri = "https://github.com/example/mock-http-server",
-        rawContent = "# Mock HTTP MCP Server\n\nMock server for HTTP verification.\n\nAuthentication: OAuth 2.0\n\nSupported clients: VS Code, Claude Desktop\n\n## Tools\n- search-docs: Search docs\n- sync-issues: Sync issues",
+        rawContent = "# 運用 Search MCP Server\n\n日本語を含む HTTP 検証用のモックサーバーです。search と issue 同期の流れを確認します。\n\nAuthentication: OAuth 2.0\n\nSupported clients: VS Code, Claude Desktop\n\n## Tools\n- search-docs: 社内ドキュメントを検索する\n- sync-issues: issue 状態を同期する",
         importedBy = "sample-http"
     }));
     PrintJson("bronze.create", bronze, jsonOptions);
@@ -115,8 +115,8 @@ async Task RunHttpFlowAsync(string baseUrl, JsonSerializerOptions jsonOptions)
 
     var updated = await ReadJsonAsync(await client.PutAsJsonAsync($"/api/gold/catalog/{goldId}", new
     {
-        overview = "Updated from sample HTTP flow.",
-        setupGuide = "1. Install\n2. Configure\n3. Run",
+        overview = "Sample HTTP flow から更新された日本語の運用サマリーです。",
+        setupGuide = "1. サービスを起動\n2. 認証を設定\n3. 検索を実行",
         references = new[] { "https://example.dev/http-guide" },
         supportedClients = new[] { "VS Code", "Claude Desktop", "Cursor" },
         updatedBy = "sample-http"
@@ -163,7 +163,7 @@ async Task RunMcpFlowAsync(string baseUrl, JsonSerializerOptions jsonOptions)
     var bronzeCreate = await client.CallToolAsync("create_bronze_source", new Dictionary<string, object?>
     {
         ["sourceType"] = "github-readme",
-        ["rawContent"] = $"# Mock MCP Tool Server {runId}\n\nMock server for MCP verification run {runId}.\n\nAuthentication: api-key\n\nSupported clients: VS Code, Cline\n\n## Tools\n- fetch-records: Fetch records\n- search-docs: Search docs",
+        ["rawContent"] = $"# Mock MCP Tool Server {runId}\n\n日本語を含む MCP 検証サーバー run {runId} です。records 取得とドキュメント検索の確認に使います。\n\nAuthentication: api-key\n\nSupported clients: VS Code, Cline\n\n## Tools\n- fetch-records: レコードを取得する\n- search-docs: ドキュメントを検索する",
         ["sourceUri"] = $"https://github.com/example/mock-mcp-server-{runId}",
         ["importedBy"] = "sample-mcp"
     }, cancellationToken: CancellationToken.None);
@@ -252,8 +252,8 @@ async Task RunMcpFlowAsync(string baseUrl, JsonSerializerOptions jsonOptions)
     var updatedResult = await client.CallToolAsync("update_gold_catalog_entry", new Dictionary<string, object?>
     {
         ["entryId"] = goldId,
-        ["overview"] = "Updated from sample MCP flow.",
-        ["setupGuide"] = "1. Install\n2. Configure\n3. Run",
+        ["overview"] = "Sample MCP flow から更新された日本語の運用サマリーです。",
+        ["setupGuide"] = "1. サービスを起動\n2. 認証を設定\n3. サンプル検索を実行",
         ["references"] = new[] { "https://example.dev/mcp-guide" },
         ["supportedClients"] = new[] { "VS Code", "Cline" },
         ["updatedBy"] = "sample-mcp"
@@ -775,12 +775,12 @@ QualitySeed CreateQualitySeed(int index)
 {
     var clusters = new[]
     {
-        new { Tag = "registry", Query = "registry", Tools = new[] { "search-registry", "sync-registry", "search-docs", "resolve-entry" } },
-        new { Tag = "workflow", Query = "workflow", Tools = new[] { "run-workflow", "dispatch-job", "search-docs", "sync-issues" } },
-        new { Tag = "retrieval", Query = "retrieval", Tools = new[] { "query-index", "fetch-records", "search-docs", "build-snippets" } },
-        new { Tag = "governance", Query = "governance", Tools = new[] { "audit-config", "review-policy", "search-docs", "report-risk" } },
-        new { Tag = "ops", Query = "ops", Tools = new[] { "check-health", "tail-logs", "search-docs", "restart-job" } },
-        new { Tag = "analytics", Query = "analytics", Tools = new[] { "search-dashboards", "aggregate-usage", "search-docs", "export-metrics" } }
+        new { Tag = "registry", Query = "registry", Japanese = "レジストリ運用", Tools = new[] { "search-registry", "sync-registry", "search-docs", "resolve-entry" } },
+        new { Tag = "workflow", Query = "workflow", Japanese = "ワークフロー自動化", Tools = new[] { "run-workflow", "dispatch-job", "search-docs", "sync-issues" } },
+        new { Tag = "retrieval", Query = "retrieval", Japanese = "検索取得", Tools = new[] { "query-index", "fetch-records", "search-docs", "build-snippets" } },
+        new { Tag = "governance", Query = "governance", Japanese = "ガバナンス監査", Tools = new[] { "audit-config", "review-policy", "search-docs", "report-risk" } },
+        new { Tag = "ops", Query = "ops", Japanese = "運用監視", Tools = new[] { "check-health", "tail-logs", "search-docs", "restart-job" } },
+        new { Tag = "analytics", Query = "analytics", Japanese = "分析ダッシュボード", Tools = new[] { "search-dashboards", "aggregate-usage", "search-docs", "export-metrics" } }
     };
     var authProfiles = new[]
     {
@@ -800,13 +800,14 @@ QualitySeed CreateQualitySeed(int index)
     var cluster = clusters[(index - 1) % clusters.Length];
     var auth = authProfiles[(index - 1) % authProfiles.Length];
     var clients = clientProfiles[(index - 1) % clientProfiles.Length];
-    var displayName = $"Quality Loop MCP Server {index:D2} {cluster.Tag.ToUpperInvariant()}";
-    var tags = new[] { "mcp", cluster.Tag, "quality", auth.Filter };
+    var displayName = $"品質ループ MCP サーバー {index:D2} {cluster.Japanese}";
+    var tags = new[] { "mcp", cluster.Tag, cluster.Japanese, "quality", auth.Filter, "日本語" };
 
     return new QualitySeed(
         index,
         displayName,
         cluster.Tag,
+        cluster.Japanese,
         cluster.Query,
         auth.Label,
         auth.Filter,
@@ -819,24 +820,24 @@ QualitySeed CreateQualitySeed(int index)
 string BuildLargeRawContent(QualitySeed seed)
 {
     var repeatedSections = string.Join("\n\n", Enumerable.Range(1, 6).Select(section =>
-        $"### Scenario {section}\n{seed.DisplayName} handles {seed.ClusterTag} operations for repeated MCP inspection. This scenario describes realistic operator tasks, integration boundaries, expected queries, and the way {seed.ToolNames[0]} or {seed.ToolNames[1]} are used during validation round {seed.Index:D2}."));
+        $"### 運用シナリオ {section}\n{seed.DisplayName} は {seed.ClusterTag} / {seed.JapaneseLabel} 領域の反復検査を扱います。operator が {seed.Query} を検索し、{seed.ToolNames[0]} と {seed.ToolNames[1]} を使って調査する実務シナリオを round {seed.Index:D2} 向けに記述しています。"));
 
-    return $"# {seed.DisplayName}\n\n{seed.DisplayName} is a {seed.ClusterTag} MCP server used to stress local catalog ingestion, search, and relation features.\n\nAuthentication: {seed.AuthLine}\n\nSupported clients: {string.Join(", ", seed.SupportedClients)}\n\n## Overview\nThis server is part of a larger quality program that stores richer MCP metadata, validates search behavior, and confirms that related entries remain discoverable after repeated updates. The content is intentionally larger than the minimum sample so the ingestion and normalization paths see a more realistic document size.\n\n## Tools\n- {seed.ToolNames[0]}: Primary operation for {seed.ClusterTag} workflows\n- {seed.ToolNames[1]}: Secondary operation for {seed.ClusterTag} workflows\n- {seed.ToolNames[2]}: Shared documentation lookup used across clusters\n- {seed.ToolNames[3]}: Supporting operation for escalation and bulk handling\n\n## Setup\n1. Install the server package and runtime prerequisites.\n2. Configure authentication, routing, and logging.\n3. Connect from {seed.SupportedClients[0]} and run sample queries for {seed.Query}.\n4. Validate health, ingestion, and search results.\n\n## Operational Notes\n{repeatedSections}\n\n## References\n- {seed.SourceUri}\n- https://example.dev/quality/{seed.ClusterTag}/reference\n- https://example.dev/quality/{seed.ClusterTag}/operations\n";
+    return $"# {seed.DisplayName}\n\n{seed.DisplayName} は {seed.JapaneseLabel} を扱う MCP サーバーです。local catalog ingestion、search、related entry 検証を現実的な文量でストレスするために使います。\n\nAuthentication: {seed.AuthLine}\n\nSupported clients: {string.Join(", ", seed.SupportedClients)}\n\n## Overview\nこのサーバーは日本語を多めに含む品質検査データです。MCP metadata を厚く保持し、search behavior を確認し、更新を繰り返した後でも related entries が見つかることを確かめます。content を大きめにして ingestion と normalization が実運用に近いサイズを通るようにしています。\n\n## Tools\n- {seed.ToolNames[0]}: {seed.JapaneseLabel} の主要操作\n- {seed.ToolNames[1]}: {seed.JapaneseLabel} の補助操作\n- {seed.ToolNames[2]}: 共通ドキュメント検索\n- {seed.ToolNames[3]}: エスカレーションと一括処理の支援\n\n## Setup\n1. サーバーパッケージと runtime 前提条件を配置する。\n2. 認証、routing、logging を設定する。\n3. {seed.SupportedClients[0]} から接続し、{seed.Query} を含むサンプル検索を実行する。\n4. health、ingestion、search 結果を確認する。\n\n## Operational Notes\n{repeatedSections}\n\n## References\n- {seed.SourceUri}\n- https://example.dev/quality/{seed.ClusterTag}/reference\n- https://example.dev/quality/{seed.ClusterTag}/operations\n";
 }
 
 string BuildUpdatedOverview(QualitySeed seed)
 {
-    return $"{seed.DisplayName} is the curated {seed.ClusterTag} quality sample used to verify MCP search, history, and related-entry behavior across repeated inspection loops.";
+    return $"{seed.DisplayName} は {seed.JapaneseLabel} 向けに調整した curated quality sample であり、反復 inspection loop を通じて MCP search、history、related-entry behavior を検証します。";
 }
 
 string BuildSetupGuide(QualitySeed seed)
 {
     return string.Join("\n", new[]
     {
-        $"1. Start the {seed.DisplayName} service",
-        $"2. Authenticate with {seed.AuthLine}",
-        $"3. Connect from {seed.SupportedClients[0]}",
-        $"4. Run {seed.ToolNames[0]} and {seed.ToolNames[2]} for {seed.Query} validation"
+        $"1. {seed.DisplayName} を起動する",
+        $"2. {seed.AuthLine} で認証する",
+        $"3. {seed.SupportedClients[0]} から接続する",
+        $"4. {seed.ToolNames[0]} と {seed.ToolNames[2]} を使って {seed.Query} を検証する"
     });
 }
 
@@ -844,6 +845,7 @@ sealed record QualitySeed(
     int Index,
     string DisplayName,
     string ClusterTag,
+    string JapaneseLabel,
     string Query,
     string AuthLine,
     string AuthFilter,

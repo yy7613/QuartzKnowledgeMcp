@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore src/QuartzKnowledgeMcp.slnx
+
+      - name: Build
+        run: dotnet build src/QuartzKnowledgeMcp.slnx --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: >-
+          dotnet test src/QuartzKnowledgeMcp.slnx
+          --configuration Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory src/TestResultsCoverage
+          --verbosity minimal
+
+      - name: Enforce coverage baseline
+        id: coverage
+        shell: pwsh
+        run: |
+          $coverageFile = Get-ChildItem -Path "src/TestResultsCoverage" -Filter "coverage.cobertura.xml" -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $coverageFile) {
+            throw "Coverage file not found."
+          }
+
+          [xml]$coverage = Get-Content $coverageFile.FullName
+          $lineRate = [math]::Round([double]$coverage.coverage.'line-rate' * 100, 2)
+          $branchRate = [math]::Round([double]$coverage.coverage.'branch-rate' * 100, 2)
+
+          "line_coverage=$lineRate" >> $env:GITHUB_OUTPUT
+          "branch_coverage=$branchRate" >> $env:GITHUB_OUTPUT
+
+          if ($lineRate -lt 85) {
+            throw "Line coverage $lineRate% is below the 85% baseline."
+          }
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-and-coverage
+          path: src/TestResultsCoverage
+
+      - name: Coverage summary
+        run: |
+          echo "Line coverage: ${{ steps.coverage.outputs.line_coverage }}%"
+          echo "Branch coverage: ${{ steps.coverage.outputs.branch_coverage }}%"

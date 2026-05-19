@@ -4,110 +4,171 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QuartzKnowledge Dashboard</title>
-  <link rel="stylesheet" href="/dashboard/dashboard.css">
+  <link rel="stylesheet" href="/dashboard/dashboard.css?v=20260520">
 </head>
 <body data-summary-endpoint="/api/dashboard/summary?recentPerStage=8" data-search-endpoint="/api/dashboard/search">
   <div class="backdrop backdrop--one"></div>
   <div class="backdrop backdrop--two"></div>
+  <div class="backdrop backdrop--three"></div>
+
   <main class="shell">
     <section class="hero panel panel--hero">
-      <div class="hero__copy">
-        <p class="eyebrow">QuartzKnowledge Observatory</p>
-        <h1>ナレッジサーバー ダッシュボード</h1>
-        <p class="hero__lede">検索、メダリオン別の件数、鮮度、タグ一覧、最近の更新、直近 7 日の推移を同じ画面で確認できます。</p>
+      <div class="hero__masthead">
+        <div class="hero__copy">
+          <p class="eyebrow">QuartzKnowledge Control Center</p>
+          <h1>ナレッジ運用ダッシュボード</h1>
+        </div>
+        <div class="hero__actions">
+          <button id="refresh-summary" class="button button--ghost" type="button">再読込</button>
+          <a class="button button--ghost" href="/api/dashboard/summary?recentPerStage=8" target="_blank" rel="noreferrer">summary JSON</a>
+        </div>
       </div>
-      <div class="hero__actions">
-        <button id="refresh-summary" class="button button--ghost" type="button">再読込</button>
-        <a class="button button--ghost" href="/api/dashboard/summary?recentPerStage=8" target="_blank" rel="noreferrer">summary JSON</a>
+
+      <div class="hero__statusbar">
+        <span class="status-pill status-pill--accent">Operator View</span>
+        <span class="status-pill">Dark Glass UI</span>
+        <span class="status-pill">Search / Graph / Inspect</span>
       </div>
+
       <div id="overview-cards" class="overview-grid"></div>
     </section>
 
-    <section class="panel search-panel">
-      <div class="panel__header">
+    <section class="workspace panel">
+      <div class="workspace__header">
         <div>
-          <p class="section-kicker">Explore</p>
-          <h2>横断検索</h2>
+          <p class="section-kicker">Workspace</p>
+          <h2>運用ワークスペース</h2>
+          <p class="panel__meta">検索、グラフ、インスペクターをタブで切り替えつつ、上部 KPI で全体状況を常時把握できます。</p>
         </div>
-        <p id="search-meta" class="panel__meta">bronze / silver / gold を横断して検索します。</p>
+        <div id="dashboard-tablist" class="tablist" role="tablist" aria-label="dashboard sections">
+          <button class="tab-chip tab-chip--active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-tab-search" data-tab="search">検索</button>
+          <button class="tab-chip" type="button" role="tab" aria-selected="false" aria-controls="dashboard-tab-analytics" data-tab="analytics">グラフ</button>
+          <button class="tab-chip" type="button" role="tab" aria-selected="false" aria-controls="dashboard-tab-inspect" data-tab="inspect">インスペクト</button>
+        </div>
       </div>
-      <form id="dashboard-search-form" class="search-form">
-        <label class="search-field">
-          <span class="sr-only">検索キーワード</span>
-          <input id="search-query" name="q" type="search" placeholder="例: registry, GitHub, VS Code" autocomplete="off">
-        </label>
-        <div id="stage-filter" class="stage-filter" role="radiogroup" aria-label="検索ステージ">
-          <button class="chip chip--active" type="button" data-stage="all">All</button>
-          <button class="chip" type="button" data-stage="bronze">Bronze</button>
-          <button class="chip" type="button" data-stage="silver">Silver</button>
-          <button class="chip" type="button" data-stage="gold">Gold</button>
-        </div>
-        <label class="search-select">
-          <span>鮮度</span>
-          <select id="freshness-filter" name="freshness">
-            <option value="all">All</option>
-            <option value="24h">24h</option>
-            <option value="7d">7d</option>
-            <option value="older">Older</option>
-          </select>
-        </label>
-        <label class="search-select">
-          <span>並び順</span>
-          <select id="search-sort" name="sort">
-            <option value="newest">最新順</option>
-            <option value="oldest">古い順</option>
-            <option value="title">タイトル順</option>
-            <option value="stage">ステージ順</option>
-          </select>
-        </label>
-        <button id="clear-search-filters" class="button button--ghost button--compact" type="button">条件解除</button>
-        <button class="button" type="submit">検索</button>
-      </form>
-      <p id="search-status" class="panel__meta">tag なし / freshness all / sort newest / stage all</p>
-      <div id="search-results" class="search-results empty-state">キーワードを入力して検索を開始してください。</div>
-    </section>
 
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <p class="section-kicker">Medallion</p>
-          <h2>メダリオン別の状態</h2>
+      <section id="dashboard-tab-search" class="tab-panel" data-dashboard-panel="search" role="tabpanel">
+        <div class="tab-layout tab-layout--search">
+          <section class="panel panel--nested search-panel">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Explore</p>
+                <h2>横断検索</h2>
+              </div>
+              <p id="search-meta" class="panel__meta">bronze / silver / gold を横断して検索します。</p>
+            </div>
+
+            <form id="dashboard-search-form" class="search-form">
+              <label class="search-field">
+                <span class="sr-only">検索キーワード</span>
+                <input id="search-query" name="q" type="search" placeholder="例: 運用手順, GitHub, レジストリ, VS Code" autocomplete="off">
+              </label>
+              <label class="search-select">
+                <span>鮮度</span>
+                <select id="freshness-filter" name="freshness">
+                  <option value="all">All</option>
+                  <option value="24h">24h</option>
+                  <option value="7d">7d</option>
+                  <option value="older">Older</option>
+                </select>
+              </label>
+              <label class="search-select">
+                <span>並び順</span>
+                <select id="search-sort" name="sort">
+                  <option value="newest">最新順</option>
+                  <option value="oldest">古い順</option>
+                  <option value="title">タイトル順</option>
+                  <option value="stage">ステージ順</option>
+                </select>
+              </label>
+              <button id="clear-search-filters" class="button button--ghost button--compact" type="button">条件解除</button>
+              <button class="button" type="submit">検索</button>
+
+              <div id="stage-filter" class="stage-filter" role="radiogroup" aria-label="検索ステージ">
+                <button class="chip chip--active" type="button" data-stage="all" aria-pressed="true">All</button>
+                <button class="chip" type="button" data-stage="bronze" aria-pressed="false">Bronze</button>
+                <button class="chip" type="button" data-stage="silver" aria-pressed="false">Silver</button>
+                <button class="chip" type="button" data-stage="gold" aria-pressed="false">Gold</button>
+              </div>
+            </form>
+
+            <p id="search-status" class="panel__meta">tag なし / freshness all / sort newest / stage all</p>
+            <div id="search-results" class="search-results empty-state">キーワードを入力して検索を開始してください。</div>
+          </section>
+
+          <section class="panel panel--nested">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Tags</p>
+                <h2>タグ一覧</h2>
+              </div>
+              <p id="tag-meta" class="panel__meta">公開済み gold catalog のタグを頻度順に表示します。クリックで search filter に反映します。</p>
+            </div>
+            <div id="tag-cloud" class="tag-cloud"></div>
+          </section>
         </div>
-        <div class="panel__controls">
-          <p class="panel__meta">件数、鮮度、最近のレコード、直近推移を stage ごとに表示します。</p>
-          <div id="trend-window-toggle" class="stage-filter" role="radiogroup" aria-label="trend window">
-            <button class="chip" type="button" data-window="3d">3d</button>
-            <button class="chip chip--active" type="button" data-window="7d">7d</button>
+      </section>
+
+      <section id="dashboard-tab-analytics" class="tab-panel" data-dashboard-panel="analytics" role="tabpanel" hidden>
+        <section class="panel panel--nested">
+          <div class="panel__header">
+            <div>
+              <p class="section-kicker">Medallion</p>
+              <h2>メダリオン別の状態</h2>
+            </div>
+            <div class="panel__controls">
+              <p class="panel__meta">件数、鮮度、最近のレコード、直近推移を stage ごとに表示します。</p>
+              <div id="trend-window-toggle" class="stage-filter" role="radiogroup" aria-label="trend window">
+                <button class="chip" type="button" data-window="3d" aria-pressed="false">3d</button>
+                <button class="chip chip--active" type="button" data-window="7d" aria-pressed="true">7d</button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div id="stage-columns" class="stage-columns"></div>
-    </section>
+          <div id="stage-columns" class="stage-columns"></div>
+        </section>
+      </section>
 
-    <section class="panel inspector-panel">
-      <div class="panel__header">
-        <div>
-          <p class="section-kicker">Inspect</p>
-          <h2>Gold Inspector</h2>
-        </div>
-        <div class="panel__controls">
-          <p id="inspector-meta" class="panel__meta">gold result の Inspect を押すと detail / history / related を読み込みます。</p>
-          <button id="clear-inspector" class="button button--ghost button--compact" type="button">閉じる</button>
-        </div>
-      </div>
-      <div id="gold-inspector-empty" class="empty-state">gold result の Inspect を押すと detail / history / related を読み込みます。</div>
-      <div id="gold-inspector-panel" class="inspector-grid" hidden></div>
-    </section>
+      <section id="dashboard-tab-inspect" class="tab-panel" data-dashboard-panel="inspect" role="tabpanel" hidden>
+        <div class="tab-layout tab-layout--inspect">
+          <section class="panel panel--nested inspector-panel">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Inspect</p>
+                <h2>Gold Inspector</h2>
+              </div>
+              <div class="panel__controls">
+                <p id="inspector-meta" class="panel__meta">gold result の Inspect を押すと detail / history / related を読み込みます。</p>
+                <button id="clear-inspector" class="button button--ghost button--compact" type="button">閉じる</button>
+              </div>
+            </div>
+            <div id="gold-inspector-empty" class="empty-state">gold result の Inspect を押すと detail / history / related を読み込みます。</div>
+            <div id="gold-inspector-panel" class="inspector-grid" hidden></div>
+          </section>
 
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <p class="section-kicker">Tags</p>
-          <h2>タグ一覧</h2>
+          <aside class="panel panel--nested quick-panel">
+            <div class="panel__header">
+              <div>
+                <p class="section-kicker">Guide</p>
+                <h2>調査の流れ</h2>
+              </div>
+            </div>
+            <div class="quick-list">
+              <div class="quick-list__item">
+                <strong>1. 検索タブで候補抽出</strong>
+                <p>タグ、鮮度、ステージで絞り込み、Gold の候補を狭めます。</p>
+              </div>
+              <div class="quick-list__item">
+                <strong>2. グラフタブで偏り確認</strong>
+                <p>Bronze / Silver / Gold の偏りや更新集中日を 3d / 7d で見比べます。</p>
+              </div>
+              <div class="quick-list__item">
+                <strong>3. Inspector で原因調査</strong>
+                <p>detail、history、related を同画面で見て差分や影響範囲を追います。</p>
+              </div>
+            </div>
+          </aside>
         </div>
-        <p id="tag-meta" class="panel__meta">公開済み gold catalog のタグを頻度順に表示します。クリックで search filter に反映します。</p>
-      </div>
-      <div id="tag-cloud" class="tag-cloud"></div>
+      </section>
     </section>
   </main>
 
@@ -128,7 +189,7 @@
           <button class="button button--ghost button--compact result-card__inspect" type="button" hidden>Inspect</button>
         </div>
       </div>
-      <h3><a class="result-card__link" target="_blank" rel="noreferrer"></a></h3>
+      <h3><a class="result-card__link" href="#"></a></h3>
       <p class="result-card__summary"></p>
       <p class="result-card__state"></p>
       <div class="result-card__tags"></div>
@@ -151,6 +212,20 @@
     </article>
   </template>
 
-  <script src="/dashboard/dashboard.js" defer></script>
+  <dialog id="result-preview-dialog" class="preview-dialog" aria-labelledby="result-preview-title">
+    <div class="preview-dialog__panel">
+      <div class="preview-dialog__header">
+        <div>
+          <p class="section-kicker">Preview</p>
+          <h2 id="result-preview-title">検索結果プレビュー</h2>
+          <p id="result-preview-meta" class="panel__meta">検索結果の詳細を読み込みます。</p>
+        </div>
+        <button id="result-preview-close" class="button button--ghost button--compact" type="button">閉じる</button>
+      </div>
+      <div id="result-preview-body" class="preview-dialog__body empty-state">検索結果のタイトルを押すと内容を表示します。</div>
+    </div>
+  </dialog>
+
+  <script src="/dashboard/dashboard.js?v=20260520" defer></script>
 </body>
 </html>

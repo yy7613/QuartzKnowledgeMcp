@@ -23,4 +23,11 @@
 | Phase 10 | completed | 80% | 87.96% | yes | yes | yes | yes | Foundry organize adapter, selector/fallback, capabilities wiring, and HTTP/MCP runtime smoke verified on the exact Azure.AI.Projects 2.1.0-beta.1 surface. |
 | Phase 11 | completed | 80% | 87.98% | yes | yes | yes | yes | Embedding ports, no-op adapters, Gold indexing hooks, and default HTTP/MCP runtime smoke were verified without changing existing search behavior. |
 | Phase 12 | completed | 80% | 87.35% | yes | yes | yes | yes | Structured search query, suggestions, facets, related entries, and HTTP/MCP runtime smoke were verified with structured-first relation scoring. |
-| Phase 13 | completed | 85% | 87.35% | yes | yes | yes | yes | Regression workflow baseline, coverage policy, report template, and final HTTP/MCP smoke were verified with 79/79 passing tests. |
+| Phase 13 | completed | 85% | 88.86% | yes | yes | yes | yes | Regression baseline, dashboard redesign follow-up, OSS publication docs, and final HTTP/MCP/browser smoke were verified with 97/97 passing tests. |
+
+## Post Phase 13 Updates
+- 2026-05-20: optional API key auth を `/api` と `/mcp` に追加し、`ApiKeyAuthenticationTests` で `401` / `200` / anonymous health を回帰確認した
+- 2026-05-20: dashboard search result preview dialog を追加し、hero の旧説明文を除去した。browser verification では modal preview の表示まで確認した
+- 2026-05-20: `Dockerfile`、`appsettings.Container.json`、`deploy/kubernetes/quartz-knowledge.sample.yaml` を追加し、container 配備用のひな形を整備した
+- 2026-05-20: `work/ingest-agent-framework-learn.ps1` で Microsoft Learn の Agent Framework 関連 4 ページを curated ingest し、dashboard search と related entry を確認した
+- 2026-05-20: 最新の全体回帰を再実行し、100 / 100 tests passing を確認した。coverage actual は次回の full coverage 採取まで 88.86% を維持する

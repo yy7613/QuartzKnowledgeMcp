@@ -2,6 +2,8 @@
 
 `QuartzKnowledgeMcp.MockClient` はローカルで起動した API / MCP サーバーに対して、主要フローを順に叩くモッククライアントです。
 
+HTTP flow と MCP flow の両方で、日本語を含む seed を Bronze -> Silver -> Gold へ流し込みます。dashboard の検索や inspector を人間が試す前の runtime smoke として使えます。
+
 ## 実行例
 
 ```powershell
@@ -28,6 +30,8 @@ dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://l
 dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://localhost:5080 --quality-only --seed-count 24 --inspection-loops 24
 ```
 
+`--quality-only` では日本語ラベルを含む quality seed を使い、search / history / related / preview organize の repeated inspection をまとめて検証します。
+
 繰り返し品質検査では quality 専用 DB を使う方が安全です。
 
 1. `Tasks: Run Task` で `reset quartz-knowledge-quality-db` を実行する
@@ -35,6 +39,12 @@ dotnet run --project Sample/QuartzKnowledgeMcp.MockClient -- --base-url http://l
 3. 上の `--quality-only` コマンドを実行する
 
 Quality DB の接続先は API project の content root 基準に固定されています。起動 directory に依存しません。
+
+## 何が確認できるか
+- HTTP create / organize / publish / update / tag replace / search の一連フロー
+- MCP tool list と health check
+- MCP create / organize preview / detail / publish / advanced search / history / related
+- dashboard で確認しやすい日本語 entry の投入
 
 ## クライアント設定例
 

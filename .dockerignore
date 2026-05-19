@@ -1,0 +1,14 @@
+.git
+.github
+.vscode
+**/bin/
+**/obj/
+**/TestResults/
+src/TestResultsCoverage/
+Sample/
+ReflectionTool/
+ReflectionTool2/
+*.db
+*.db-shm
+*.db-wal
+test_results.log

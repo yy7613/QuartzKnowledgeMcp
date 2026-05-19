@@ -13,6 +13,7 @@ using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Health;
 using QuartzKnowledgeMcp.Api.Mcp;
 using QuartzKnowledgeMcp.Api.Persistence;
+using QuartzKnowledgeMcp.Api.Security;
 using QuartzKnowledgeMcp.Api.Search;
 using QuartzKnowledgeMcp.Api.Silver;
 
@@ -21,6 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+builder.Services.AddQuartzKnowledgeAuthentication(builder.Configuration);
 builder.Services.AddSingleton(HealthCheckOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IHealthStatusService, HealthStatusService>();
@@ -76,6 +78,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
+app.UseQuartzKnowledgeAuthentication();
 app.UseStaticFiles();
 
 app.MapGet("/health", (IHealthStatusService healthStatusService) =>

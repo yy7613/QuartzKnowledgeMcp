@@ -91,13 +91,18 @@ public class DashboardApiTests(ApiTestFactory factory)
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("ナレッジサーバー ダッシュボード", html);
+        Assert.Contains("ナレッジ運用ダッシュボード", html);
+        Assert.DoesNotContain("検索、メダリオン別の推移、Gold の履歴と関連情報を PC 画面で一目に追える、Azure portal 風の観測ビューです。", html);
         Assert.Contains("/api/dashboard/summary", html);
         Assert.Contains("/api/dashboard/search", html);
         Assert.Contains("freshness-filter", html);
         Assert.Contains("search-sort", html);
+        Assert.Contains("dashboard-tablist", html);
+        Assert.Contains("dashboard-tab-analytics", html);
+        Assert.Contains("dashboard-tab-inspect", html);
         Assert.Contains("trend-window-toggle", html);
         Assert.Contains("gold-inspector-panel", html);
+        Assert.Contains("result-preview-dialog", html);
     }
 
     [Fact]
