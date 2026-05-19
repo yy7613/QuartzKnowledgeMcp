@@ -1,0 +1,93 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "run quartz-knowledge-mcp",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "src/QuartzKnowledgeMcp.Api/QuartzKnowledgeMcp.Api.csproj",
+        "--no-launch-profile",
+        "--urls",
+        "http://localhost:5080"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": "^(.*)$",
+            "message": 1
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^.*$",
+            "endsPattern": "Now listening on:\\s+http://localhost:5080$"
+          }
+        }
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run quartz-knowledge-mcp (quality-db)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "src/QuartzKnowledgeMcp.Api/QuartzKnowledgeMcp.Api.csproj",
+        "--no-launch-profile",
+        "--urls",
+        "http://localhost:5080"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Quality"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": {
+            "regexp": "^(.*)$",
+            "message": 1
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^.*$",
+            "endsPattern": "Now listening on:\\s+http://localhost:5080$"
+          }
+        }
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "reset quartz-knowledge-quality-db",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "Remove-Item -Force -ErrorAction SilentlyContinue 'quartz-knowledge-quality.db','quartz-knowledge-quality.db-shm','quartz-knowledge-quality.db-wal','src/QuartzKnowledgeMcp.Api/quartz-knowledge-quality.db','src/QuartzKnowledgeMcp.Api/quartz-knowledge-quality.db-shm','src/QuartzKnowledgeMcp.Api/quartz-knowledge-quality.db-wal'"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

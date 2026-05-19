@@ -50,11 +50,13 @@ public sealed class BronzeMcpTools(
     public async Task<SilverOrganizeToolResponse> organize_bronze_source(
         [Description("Bronze source ID.")] Guid bronzeId,
         [Description("Organize mode. Use silver-draft.")] string? mode = SilverOrganizeModes.SilverDraft,
+        [Description("Request LLM-backed organization when configured. Falls back to rule-based when unavailable.")] bool? useLlm = null,
+        [Description("When true, returns a draft preview without persisting silver data.")] bool? preview = null,
         CancellationToken cancellationToken = default)
     {
         var result = await silverDraftApplicationService.OrganizeAsync(
             bronzeId,
-            new OrganizeBronzeSourceRequest(mode),
+            new OrganizeBronzeSourceRequest(mode, useLlm, preview),
             cancellationToken);
 
         return new SilverOrganizeToolResponse(

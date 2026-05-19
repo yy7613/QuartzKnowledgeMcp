@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "quartz-knowledge-local": {
+      "type": "http",
+      "url": "http://localhost:5080/mcp"
+    }
+  }
+}

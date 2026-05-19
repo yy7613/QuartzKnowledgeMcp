@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuartzKnowledge Dashboard</title>
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+</head>
+<body data-summary-endpoint="/api/dashboard/summary?recentPerStage=8" data-search-endpoint="/api/dashboard/search">
+  <div class="backdrop backdrop--one"></div>
+  <div class="backdrop backdrop--two"></div>
+  <main class="shell">
+    <section class="hero panel panel--hero">
+      <div class="hero__copy">
+        <p class="eyebrow">QuartzKnowledge Observatory</p>
+        <h1>ナレッジサーバー ダッシュボード</h1>
+        <p class="hero__lede">検索、メダリオン別の件数、鮮度、タグ一覧、最近の更新、直近 7 日の推移を同じ画面で確認できます。</p>
+      </div>
+      <div class="hero__actions">
+        <button id="refresh-summary" class="button button--ghost" type="button">再読込</button>
+        <a class="button button--ghost" href="/api/dashboard/summary?recentPerStage=8" target="_blank" rel="noreferrer">summary JSON</a>
+      </div>
+      <div id="overview-cards" class="overview-grid"></div>
+    </section>
+
+    <section class="panel search-panel">
+      <div class="panel__header">
+        <div>
+          <p class="section-kicker">Explore</p>
+          <h2>横断検索</h2>
+        </div>
+        <p id="search-meta" class="panel__meta">bronze / silver / gold を横断して検索します。</p>
+      </div>
+      <form id="dashboard-search-form" class="search-form">
+        <label class="search-field">
+          <span class="sr-only">検索キーワード</span>
+          <input id="search-query" name="q" type="search" placeholder="例: registry, GitHub, VS Code" autocomplete="off">
+        </label>
+        <div id="stage-filter" class="stage-filter" role="radiogroup" aria-label="検索ステージ">
+          <button class="chip chip--active" type="button" data-stage="all">All</button>
+          <button class="chip" type="button" data-stage="bronze">Bronze</button>
+          <button class="chip" type="button" data-stage="silver">Silver</button>
+          <button class="chip" type="button" data-stage="gold">Gold</button>
+        </div>
+        <label class="search-select">
+          <span>鮮度</span>
+          <select id="freshness-filter" name="freshness">
+            <option value="all">All</option>
+            <option value="24h">24h</option>
+            <option value="7d">7d</option>
+            <option value="older">Older</option>
+          </select>
+        </label>
+        <label class="search-select">
+          <span>並び順</span>
+          <select id="search-sort" name="sort">
+            <option value="newest">最新順</option>
+            <option value="oldest">古い順</option>
+            <option value="title">タイトル順</option>
+            <option value="stage">ステージ順</option>
+          </select>
+        </label>
+        <button id="clear-search-filters" class="button button--ghost button--compact" type="button">条件解除</button>
+        <button class="button" type="submit">検索</button>
+      </form>
+      <p id="search-status" class="panel__meta">tag なし / freshness all / sort newest / stage all</p>
+      <div id="search-results" class="search-results empty-state">キーワードを入力して検索を開始してください。</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <p class="section-kicker">Medallion</p>
+          <h2>メダリオン別の状態</h2>
+        </div>
+        <div class="panel__controls">
+          <p class="panel__meta">件数、鮮度、最近のレコード、直近推移を stage ごとに表示します。</p>
+          <div id="trend-window-toggle" class="stage-filter" role="radiogroup" aria-label="trend window">
+            <button class="chip" type="button" data-window="3d">3d</button>
+            <button class="chip chip--active" type="button" data-window="7d">7d</button>
+          </div>
+        </div>
+      </div>
+      <div id="stage-columns" class="stage-columns"></div>
+    </section>
+
+    <section class="panel inspector-panel">
+      <div class="panel__header">
+        <div>
+          <p class="section-kicker">Inspect</p>
+          <h2>Gold Inspector</h2>
+        </div>
+        <div class="panel__controls">
+          <p id="inspector-meta" class="panel__meta">gold result の Inspect を押すと detail / history / related を読み込みます。</p>
+          <button id="clear-inspector" class="button button--ghost button--compact" type="button">閉じる</button>
+        </div>
+      </div>
+      <div id="gold-inspector-empty" class="empty-state">gold result の Inspect を押すと detail / history / related を読み込みます。</div>
+      <div id="gold-inspector-panel" class="inspector-grid" hidden></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <p class="section-kicker">Tags</p>
+          <h2>タグ一覧</h2>
+        </div>
+        <p id="tag-meta" class="panel__meta">公開済み gold catalog のタグを頻度順に表示します。クリックで search filter に反映します。</p>
+      </div>
+      <div id="tag-cloud" class="tag-cloud"></div>
+    </section>
+  </main>
+
+  <template id="overview-card-template">
+    <article class="metric-card reveal">
+      <p class="metric-card__label"></p>
+      <strong class="metric-card__value"></strong>
+      <p class="metric-card__hint"></p>
+    </article>
+  </template>
+
+  <template id="search-item-template">
+    <article class="result-card reveal">
+      <div class="result-card__topline">
+        <span class="stage-pill"></span>
+        <div class="result-card__actions">
+          <time class="result-card__time"></time>
+          <button class="button button--ghost button--compact result-card__inspect" type="button" hidden>Inspect</button>
+        </div>
+      </div>
+      <h3><a class="result-card__link" target="_blank" rel="noreferrer"></a></h3>
+      <p class="result-card__summary"></p>
+      <p class="result-card__state"></p>
+      <div class="result-card__tags"></div>
+    </article>
+  </template>
+
+  <template id="stage-card-template">
+    <article class="stage-card reveal">
+      <div class="stage-card__header">
+        <div>
+          <p class="stage-card__name"></p>
+          <strong class="stage-card__count"></strong>
+        </div>
+        <p class="stage-card__latest"></p>
+      </div>
+      <div class="trend-strip"></div>
+      <div class="freshness-grid"></div>
+      <div class="breakdown-list"></div>
+      <div class="recent-list"></div>
+    </article>
+  </template>
+
+  <script src="/dashboard/dashboard.js" defer></script>
+</body>
+</html>

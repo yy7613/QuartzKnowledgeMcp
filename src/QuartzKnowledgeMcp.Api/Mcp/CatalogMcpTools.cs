@@ -3,13 +3,15 @@ using ModelContextProtocol.Server;
 using QuartzKnowledgeMcp.Api.Application;
 using QuartzKnowledgeMcp.Api.Gold;
 using QuartzKnowledgeMcp.Api.Silver;
+using QuartzKnowledgeMcp.Api.Search;
 
 namespace QuartzKnowledgeMcp.Api.Mcp;
 
 [McpServerToolType]
 public sealed class CatalogMcpTools(
     SilverDraftApplicationService silverDraftApplicationService,
-    CatalogCurationApplicationService catalogCurationApplicationService)
+    CatalogCurationApplicationService catalogCurationApplicationService,
+    CatalogRelationService catalogRelationService)
 {
     [McpServerTool, Description("Lists silver drafts.")]
     public Task<SilverServerDraftListResponse> list_silver_server_drafts(
@@ -110,5 +112,14 @@ public sealed class CatalogMcpTools(
         CancellationToken cancellationToken = default)
     {
         return catalogCurationApplicationService.GetHistoryAsync(entryId, page, pageSize, cancellationToken);
+    }
+
+    [McpServerTool, Description("Gets related gold catalog entries using structured-first relation scoring.")]
+    public Task<RelatedCatalogEntryResultResponse?> get_related_entries(
+        [Description("Gold catalog entry ID.")] Guid entryId,
+        [Description("Maximum related entries, clamped by the underlying service.")] int limit = 5,
+        CancellationToken cancellationToken = default)
+    {
+        return catalogRelationService.GetRelatedAsync(entryId, limit, cancellationToken);
     }
 }

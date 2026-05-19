@@ -31,7 +31,15 @@ public static class CatalogMetadataExtractor
             return "api-key";
         }
 
-        if (ContainsAny(content, "no authentication required", "without authentication", "no auth", "anonymous access"))
+        if (ContainsAny(
+            content,
+            "no authentication required",
+            "without authentication",
+            "no auth",
+            "anonymous access",
+            "authentication: none",
+            "authentication none",
+            "auth: none"))
         {
             return "none";
         }
