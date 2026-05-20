@@ -72,8 +72,6 @@ GitHub Actions でも同じ基準を [.github/workflows/ci.yml](.github/workflow
 - [src/README.md](src/README.md): ソースツリー、ダッシュボード、テスト運用
 - [Sample/README.md](Sample/README.md): サンプル モッククライアントと品質ハーネス
 - [deploy/kubernetes/quartz-knowledge.sample.yaml](deploy/kubernetes/quartz-knowledge.sample.yaml): Kubernetes 配備サンプル
-- [CONTRIBUTING.md](CONTRIBUTING.md): 開発参加時のセットアップと品質基準
-- [SECURITY.md](SECURITY.md): 脆弱性報告ポリシー
 - [implementation/phase-status.md](implementation/phase-status.md): カバレッジ / 回帰管理表
 
 `implementation` と `ideas` は履歴と検討経緯を残す補助文書です。現行の公開仕様、運用前提、品質基準は `docs` とこの README 群を優先してください。
