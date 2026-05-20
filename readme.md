@@ -1,6 +1,6 @@
-# QuartzKnowledge MCP Server
+# QuartzKnowledgeMcp
 
-QuartzKnowledge MCP Server は、MCP server 情報を Bronze / Silver / Gold の medallion flow で取り込み、HTTP API と MCP の両面から検索・運用できる .NET 10 ベースの knowledge server です。
+QuartzKnowledgeMcp は、MCP server 情報を Bronze / Silver / Gold の medallion flow で取り込み、HTTP API と MCP の両面から検索・運用できる .NET 10 ベースの knowledge server です。
 
 人間向けには dark glass のダッシュボードを持ち、検索結果プレビュー、メダリオン別の推移、Gold entry の詳細 / 履歴 / 関連情報を PC 画面で確認できます。
 

@@ -1,12 +1,12 @@
 ---
 name: quartz-knowledge-mcp
-description: "Use when: operating, seeding, validating, or debugging the local QuartzKnowledge MCP server; querying the catalog via MCP; running the MCP quality harness; checking capabilities, advanced search, related entries, or VS Code MCP setup."
+description: "Use when: operating, seeding, validating, or debugging the local QuartzKnowledgeMcp server; querying the catalog via MCP; running the MCP quality harness; checking capabilities, advanced search, related entries, or VS Code MCP setup."
 ---
 
-# QuartzKnowledge MCP Skill
+# QuartzKnowledgeMcp Skill
 
 ## Use When
-- You want to operate the local QuartzKnowledge MCP server from VS Code or another MCP client.
+- You want to operate the local QuartzKnowledgeMcp server from VS Code or another MCP client.
 - You need to seed catalog data through MCP tools instead of calling the HTTP API directly.
 - You want to validate MCP quality with repeated search, suggestions, facets, history, capabilities, and related-entry checks.
 - You need to debug why MCP works in one client but fails in VS Code.
