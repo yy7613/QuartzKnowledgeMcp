@@ -7,7 +7,7 @@ namespace QuartzKnowledgeMcp.Api.Mcp;
 [McpServerToolType]
 public sealed class SearchMcpTools(CatalogSearchService catalogSearchService)
 {
-    [McpServerTool, Description("Runs structured catalog search.")]
+    [McpServerTool, Description("Dedicated read-only tool for keyword and filter search over gold catalog entries. Use when the user asks to search, find, filter, or look up catalog entries by text, tag, auth type, supported client, or sort order. Do not use to create, publish, update, replace tags, or retrieve change history. You do not need to call list_gold_catalog first; call get_gold_catalog_entry after this only when the user needs full details for one result.")]
     public Task<CatalogSearchResultResponse> search_catalog(
         [Description("Optional keyword query.")] string? query = null,
         [Description("Optional AND tag filters.")] string[]? tags = null,
@@ -29,7 +29,7 @@ public sealed class SearchMcpTools(CatalogSearchService catalogSearchService)
             cancellationToken);
     }
 
-    [McpServerTool, Description("Runs advanced catalog search using the same request shape as the HTTP POST query endpoint.")]
+    [McpServerTool, Description("Dedicated read-only tool for advanced catalog search using the same request shape as the HTTP POST query endpoint. Use when the user asks for a structured search with multiple filters, paging, and sort behavior in one request. Do not use to create, publish, update, replace tags, or retrieve history. You do not need to call list_gold_catalog first; call get_gold_catalog_entry after this only when full details for one result are needed.")]
     public Task<CatalogSearchResultResponse> search_catalog_advanced(
         [Description("Optional keyword query.")] string? query = null,
         [Description("Optional AND tag filters.")] string[]? tags = null,
@@ -45,7 +45,7 @@ public sealed class SearchMcpTools(CatalogSearchService catalogSearchService)
             cancellationToken);
     }
 
-    [McpServerTool, Description("Returns deterministic search suggestions.")]
+    [McpServerTool, Description("Dedicated read-only tool for deterministic catalog search suggestions. Use when the user asks for autocomplete, suggestion terms, likely tags, names, tools, or clients before running a search. Do not use to return catalog entries, full entry details, history, updates, publishing, or tag replacement. You do not need to call list_gold_catalog first.")]
     public Task<SearchSuggestionResultResponse> get_search_suggestions(
         [Description("Suggestion query.")] string? query,
         [Description("Maximum suggestions, clamped to 1-20.")] int limit = 10,
@@ -55,7 +55,7 @@ public sealed class SearchMcpTools(CatalogSearchService catalogSearchService)
         return catalogSearchService.GetSuggestionsAsync(query, limit, scope, cancellationToken);
     }
 
-    [McpServerTool, Description("Returns search facet counts for the current filters.")]
+    [McpServerTool, Description("Dedicated read-only tool for facet counts over the current catalog search filters. Use when the user asks for available filter values, counts by tag, auth type, or client, or wants to refine a search. Do not use to return full catalog entries, create, publish, update, replace tags, or retrieve history. You do not need to call list_gold_catalog first.")]
     public Task<SearchFacetResultResponse> get_search_facets(
         [Description("Optional keyword query.")] string? query = null,
         [Description("Optional AND tag filters.")] string[]? tags = null,
